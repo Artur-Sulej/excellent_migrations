@@ -1,4 +1,4 @@
-defmodule Expat.MessageGenerator do
+defmodule ExcellentMigrations.MessageGenerator do
   def get_message(:execute, path, line) do
     "Raw SQL used in file #{path}:#{line}"
   end

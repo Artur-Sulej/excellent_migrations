@@ -1,18 +1,18 @@
 defmodule ExcellentMigrations.Checker do
   alias ExcellentMigrations.{
-    FilesReader,
     MessageGenerator,
     Parser
   }
 
-  def check_migrations do
-    FilesReader.get_paths()
+  def check_migrations(file_paths) do
+    file_paths
     |> Parallel.pmap(fn path ->
       path
       |> get_ast()
       |> Parser.parse()
       |> generate_message(path)
     end)
+    |> List.flatten()
     |> Enum.reject(&is_nil/1)
   end
 
@@ -24,10 +24,10 @@ defmodule ExcellentMigrations.Checker do
       warnings == [] ->
         nil
 
-      _ ->
+      true ->
         warnings
         |> Keyword.delete(:safety_assured)
-        |> Enum.map(fn {key, line} -> MessageGenerator.get_message(key, line, path) end)
+        |> Enum.map(fn {key, line} -> MessageGenerator.get_message(key, path, line) end)
     end
   end
 

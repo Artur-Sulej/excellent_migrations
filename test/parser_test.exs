@@ -2,7 +2,7 @@ defmodule ParserTest do
   use ExUnit.Case
   alias ExcellentMigrations.Parser
 
-  test "parse/1" do
+  test "generates warnings for migrations" do
     assert [execute: 5, execute: 9] == Parser.parse(migration_ast1())
     assert [] == Parser.parse(migration_ast2())
     assert [] == Parser.parse(migration_ast3())

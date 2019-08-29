@@ -14,6 +14,15 @@ defmodule ExcellentMigrations.Checker do
     end)
     |> List.flatten()
     |> Enum.reject(&is_nil/1)
+    |> close()
+  end
+
+  defp close(_messages = []) do
+    :ok
+  end
+
+  defp close(messages) do
+    {:error, messages}
   end
 
   defp generate_message(warnings, path) do

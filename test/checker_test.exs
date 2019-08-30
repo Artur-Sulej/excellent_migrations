@@ -19,7 +19,8 @@ defmodule CheckerTest do
 
   test "no dangerous operations" do
     file_paths = [
-      "test/example_migrations/20190718085047_create_vegetables.exs"
+      "test/example_migrations/20190718085047_create_vegetables.exs",
+      "test/example_migrations/20190940090804_add_something_to_vegetables.exs"
     ]
 
     assert :ok == Checker.check_migrations(file_paths)

@@ -1,6 +1,8 @@
-# ExcellentMigrations
+# ExcellentMigrations [WIP]
 
-**TODO: Add description**
+An Elixir lib that detects unsafe migrations. 
+
+It's similar to a great Ruby gem: [strong_migrations](https://github.com/ankane/strong_migrations).
 
 ## Installation
 

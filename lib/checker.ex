@@ -1,15 +1,19 @@
 defmodule ExcellentMigrations.Checker do
   alias ExcellentMigrations.{
+    FilesReader,
     MessageGenerator,
     Parser
   }
 
-  def check_migrations(file_paths) do
-    file_paths
+  def check_migrations(opts \\ []) do
+    migrations_paths = Keyword.get_lazy(opts, :migrations_paths, &FilesReader.get_migrations_paths/0)
+
+    migrations_paths
     |> Task.async_stream(fn path ->
       path
       |> get_ast()
       |> Parser.parse()
+      |> reject_safety_assured()
       |> generate_message(path)
     end)
     |> Stream.flat_map(fn {:ok, messages} -> messages end)
@@ -18,27 +22,19 @@ defmodule ExcellentMigrations.Checker do
     |> close()
   end
 
-  defp close(_messages = []) do
-    :ok
-  end
+  defp close(_messages = []), do: :ok
+  defp close(messages), do: {:error, messages}
 
-  defp close(messages) do
-    {:error, messages}
+  defp reject_safety_assured(warnings) do
+    if Keyword.get(warnings, :safety_assured) do
+      []
+    else
+      Keyword.delete(warnings, :safety_assured)
+    end
   end
 
   defp generate_message(warnings, path) do
-    cond do
-      Keyword.get(warnings, :safety_assured) ->
-        []
-
-      warnings == [] ->
-        []
-
-      true ->
-        warnings
-        |> Keyword.delete(:safety_assured)
-        |> Enum.map(fn {key, line} -> MessageGenerator.get_message(key, path, line) end)
-    end
+    Enum.map(warnings, fn {key, line} -> MessageGenerator.get_message(key, path, line) end)
   end
 
   defp get_ast(file_path) do

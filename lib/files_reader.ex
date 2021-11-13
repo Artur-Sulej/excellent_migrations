@@ -1,8 +1,10 @@
 defmodule ExcellentMigrations.FilesReader do
-  def get_paths do
-    [
-      "test/example_migrations/20180718085047_create_dumplings.txt",
-      "test/example_migrations/20180830090807_add_index_to_dumplings.exs"
-    ]
+  def get_migrations_paths do
+    "**/migrations/*.exs"
+    |> Path.wildcard()
+    |> Enum.reject(fn path ->
+      String.starts_with?(path, ["deps/", "_build/"]) ||
+        String.contains?(path, ["/deps/", "/_build/"])
+    end)
   end
 end

@@ -1,4 +1,4 @@
-defmodule ParserTest do
+defmodule ExcellentMigrations.ParserTest do
   use ExUnit.Case
   alias ExcellentMigrations.Parser
 
@@ -11,272 +11,81 @@ defmodule ParserTest do
   end
 
   defp migration_ast1 do
-    {
-      :defmodule,
-      [line: 1],
-      [
-        {:__aliases__, [line: 1],
-         [:Migrations, :AddRecipeIndexToDumplings]},
-        [
-          do: {
-            :__block__,
-            [],
-            [
-              {:use, [line: 2], [{:__aliases__, [line: 2], [:Ecto, :Migration]}]},
-              {
-                :def,
-                [line: 4],
-                [
-                  {:up, [line: 4], nil},
-                  [
-                    do: {
-                      :execute,
-                      [line: 5],
-                      [
-                        "CREATE INDEX idx_dumplings_geog ON dumplings using GIST(Geography(geom));"
-                      ]
-                    }
-                  ]
-                ]
-              },
-              {
-                :def,
-                [line: 8],
-                [
-                  {:down, [line: 8], nil},
-                  [do: {:execute, [line: 9], ["DROP INDEX idx_dumplings_geog;"]}]
-                ]
-              }
-            ]
-          }
-        ]
-      ]
-    }
+    string_to_ast("""
+    defmodule Migrations.AddRecipeIndexToDumplings do
+      use Ecto.Migration
+
+      def up do
+        execute("CREATE INDEX idx_dumplings_geog ON dumplings using GIST(Geography(geom));")
+      end
+
+      def down do
+        execute("DROP INDEX idx_dumplings_geog;")
+      end
+    end
+    """)
   end
 
   defp migration_ast2 do
-    {
-      :defmodule,
-      [line: 1],
-      [
-        {
-          :__aliases__,
-          [line: 1],
-          [
-            :Migrations,
-            :AddRecipeIdToDumplings
-          ]
-        },
-        [
-          do:
-            {:__block__, [],
-             [
-               {
-                 :use,
-                 [line: 2],
-                 [{:__aliases__, [line: 2], [:Ecto, :Migration]}]
-               },
-               {
-                 :def,
-                 [line: 4],
-                 [
-                   {:change, [line: 4], nil},
-                   [
-                     do:
-                       {:__block__, [],
-                        [
-                          {
-                            :add,
-                            [line: 5],
-                            [
-                              :recipe_id,
-                              {
-                                :references,
-                                [line: 5],
-                                [:flours, [on_delete: :delete_all]]
-                              },
-                              [null: false]
-                            ]
-                          },
-                          {:remove, [line: 6], [:created_at]}
-                        ]}
-                   ]
-                 ]
-               }
-             ]}
-        ]
-      ]
-    }
+    string_to_ast("""
+    defmodule Migrations.AddRecipeIdToDumplings do
+      use Ecto.Migration
+
+      def change do
+        add(:recipe_id, references(:recipes, on_delete: :delete_all), null: false)
+        remove(:created_at)
+      end
+    end
+    """)
   end
 
   defp migration_ast3 do
-    {
-      :defmodule,
-      [line: 1],
-      [
-        {
-          :__aliases__,
-          [line: 1],
-          [
-            :Migrations,
-            :AddRecipeIdToDumplings
-          ]
-        },
-        [
-          do:
-            {:__block__, [],
-             [
-               {
-                 :use,
-                 [line: 2],
-                 [{:__aliases__, [line: 2], [:Ecto, :Migration]}]
-               },
-               {
-                 :def,
-                 [line: 4],
-                 [
-                   {:change, [line: 4], nil},
-                   [
-                     do: {:alter, [line: 4], [{:table, [line: 4], [:dumplings]}]}
-                   ]
-                 ]
-               }
-             ]}
-        ]
-      ]
-    }
+    string_to_ast("""
+    defmodule Migrations.AddRecipeIdToDumplings do
+      use Ecto.Migration
+
+      def change do
+        add(:recipe_id, references(:recipes, on_delete: :delete_all), null: false)
+        remove(:created_at)
+      end
+    end
+    """)
   end
 
   defp migration_ast4 do
-    {
-      :defmodule,
-      [line: 1],
-      [
-        {
-          :__aliases__,
-          [line: 1],
-          [
-            :Migrations,
-            :AddRecipeIdToDumplings
-          ]
-        },
-        [
-          do:
-            {:__block__, [],
-             [
-               {
-                 :use,
-                 [line: 2],
-                 [{:__aliases__, [line: 2], [:Ecto, :Migration]}]
-               },
-               {:@, [line: 4], [{:safety_assured, [line: 4], [:change]}]},
-               {
-                 :def,
-                 [line: 6],
-                 [
-                   {:change, [line: 6], nil},
-                   [
-                     do:
-                       {:alter, [line: 7],
-                        [
-                          {:table, [line: 7], [:dumplings]},
-                          [
-                            do:
-                              {:add, [line: 8],
-                               [
-                                 :recipe_id,
-                                 {
-                                   :references,
-                                   [line: 8],
-                                   [:flours, [on_delete: :delete_all]]
-                                 },
-                                 [null: false]
-                               ]}
-                          ]
-                        ]}
-                   ]
-                 ]
-               }
-             ]}
-        ]
-      ]
-    }
+    string_to_ast("""
+    defmodule Migrations.AddRecipeIdToDumplings do
+      use Ecto.Migration
+
+      @safety_assured :change
+      def change do
+        alter(table(:dumplings)) do
+          add(:recipe_id, references(:recipes, on_delete: :delete_all), null: false)
+        end
+      end
+    end
+    """)
   end
 
   defp migration_ast5 do
-    {
-      :defmodule,
-      [line: 1],
-      [
-        {
-          :__aliases__,
-          [line: 1],
-          [
-            :Migrations,
-            :AddRecipeIdToDumplings
-          ]
-        },
-        [
-          do:
-            {:__block__, [],
-             [
-               {
-                 :use,
-                 [line: 2],
-                 [{:__aliases__, [line: 2], [:Ecto, :Migration]}]
-               },
-               {:@, [line: 4], [{:safety_assured, [line: 4], [:change]}]},
-               {
-                 :def,
-                 [line: 6],
-                 [
-                   {:change, [line: 6], nil},
-                   [
-                     do:
-                       {:__block__, [],
-                        [
-                          {
-                            :alter,
-                            [line: 7],
-                            [
-                              {:table, [line: 7], [:dumplings]},
-                              [
-                                do:
-                                  {:add, [line: 8],
-                                   [
-                                     :recipe_id,
-                                     {
-                                       :references,
-                                       [line: 8],
-                                       [:flours, [on_delete: :delete_all]]
-                                     },
-                                     [null: false]
-                                   ]}
-                              ]
-                            ]
-                          },
-                          {
-                            :create,
-                            [line: 10],
-                            [
-                              {
-                                :index,
-                                [line: 10],
-                                [
-                                  :pots,
-                                  [:recipe_id, :dumplings_id],
-                                  [unique: true]
-                                ]
-                              }
-                            ]
-                          }
-                        ]}
-                   ]
-                 ]
-               }
-             ]}
-        ]
-      ]
-    }
+    string_to_ast("""
+    defmodule Migrations.AddRecipeIdToDumplings do
+      use Ecto.Migration
+
+      @safety_assured :change
+      def(change) do
+        alter(table(:dumplings)) do
+          add(:recipe_id, references(:recipes, on_delete: :delete_all), null: false)
+        end
+
+        create(index(:dumplings, [:recipe_id, :flour_id], unique: true))
+      end
+    end
+    """)
+  end
+
+  defp string_to_ast(string) do
+    {:ok, ast} = Code.string_to_quoted(string)
+    ast
   end
 end

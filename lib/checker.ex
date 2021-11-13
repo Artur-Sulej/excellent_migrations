@@ -6,14 +6,15 @@ defmodule ExcellentMigrations.Checker do
 
   def check_migrations(file_paths) do
     file_paths
-    |> Parallel.pmap(fn path ->
+    |> Task.async_stream(fn path ->
       path
       |> get_ast()
       |> Parser.parse()
       |> generate_message(path)
     end)
-    |> List.flatten()
-    |> Enum.reject(&is_nil/1)
+    |> Stream.flat_map(fn {:ok, messages} -> messages end)
+    |> Stream.reject(&is_nil/1)
+    |> Enum.to_list()
     |> close()
   end
 
@@ -28,10 +29,10 @@ defmodule ExcellentMigrations.Checker do
   defp generate_message(warnings, path) do
     cond do
       Keyword.get(warnings, :safety_assured) ->
-        nil
+        []
 
       warnings == [] ->
-        nil
+        []
 
       true ->
         warnings
@@ -43,9 +44,5 @@ defmodule ExcellentMigrations.Checker do
   defp get_ast(file_path) do
     {:ok, ast} = Code.string_to_quoted(File.read!(file_path))
     ast
-  end
-
-  defp check_safety(ast) do
-    ExcellentMigrations.Parser.parse(ast)
   end
 end

@@ -44,7 +44,7 @@ defmodule ExcellentMigrations.Parser do
 
   defp _parse([], acc), do: acc
 
-  defp _parse(other, acc) when is_atom(other), do: acc
+  defp _parse(other, acc), do: acc
 
   defp parse_body(body, acc) do
     dangers = check_for_execute(body) ++ check_for_index_concurrently(body)

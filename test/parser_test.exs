@@ -6,8 +6,8 @@ defmodule ExcellentMigrations.ParserTest do
     assert [execute: 5, execute: 9] == Parser.parse(migration_ast1())
     assert [] == Parser.parse(migration_ast2())
     assert [] == Parser.parse(migration_ast3())
-    assert [safety_assured: :change] == Parser.parse(migration_ast4())
-    assert [safety_assured: :change, index_not_concurrently: 10] == Parser.parse(migration_ast5())
+    assert [safety_assured: true] == Parser.parse(migration_ast4())
+    assert [safety_assured: true, index_not_concurrently: 10] == Parser.parse(migration_ast5())
   end
 
   defp migration_ast1 do
@@ -57,7 +57,7 @@ defmodule ExcellentMigrations.ParserTest do
     defmodule Migrations.AddRecipeIdToDumplings do
       use Ecto.Migration
 
-      @safety_assured :change
+      @safety_assured true
       def change do
         alter(table(:dumplings)) do
           add(:recipe_id, references(:recipes, on_delete: :delete_all), null: false)
@@ -72,7 +72,7 @@ defmodule ExcellentMigrations.ParserTest do
     defmodule Migrations.AddRecipeIdToDumplings do
       use Ecto.Migration
 
-      @safety_assured :change
+      @safety_assured true
       def(change) do
         alter(table(:dumplings)) do
           add(:recipe_id, references(:recipes, on_delete: :delete_all), null: false)

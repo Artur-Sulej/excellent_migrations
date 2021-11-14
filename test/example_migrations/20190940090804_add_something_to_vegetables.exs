@@ -1,5 +1,5 @@
 defmodule AddSomethingToVegetables do
-  @safety_assured [:up, :down]
+  @safety_assured true
 
   def up do
     execute("ALTER TABLE vegetables ADD COLUMN something integer;")

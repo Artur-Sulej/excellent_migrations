@@ -62,8 +62,8 @@ defmodule ExcellentMigrations.Parser do
     acc ++ dangers
   end
 
-  defp check_for_execute({:execute, [line: line], _}) do
-    [{:execute, line}]
+  defp check_for_execute({:execute, location, _}) do
+    [{:execute, Keyword.get(location, :line)}]
   end
 
   defp check_for_execute([head | tail]) do
@@ -73,11 +73,11 @@ defmodule ExcellentMigrations.Parser do
   defp check_for_execute(_), do: []
 
   defp check_for_index_concurrently(
-         {:create, [line: line], [{:index, _, [_table, _columns, options]}]}
+         {:create, location, [{:index, _, [_table, _columns, options]}]}
        ) do
     case Keyword.get(options, :concurrently) do
       true -> []
-      _ -> [{:index_not_concurrently, line}]
+      _ -> [{:index_not_concurrently, Keyword.get(location, :line)}]
     end
   end
 

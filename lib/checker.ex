@@ -6,15 +6,12 @@ defmodule ExcellentMigrations.Checker do
   }
 
   def check_migrations(opts \\ []) do
-    migrations_paths =
-      Keyword.get_lazy(opts, :migrations_paths, &FilesReader.get_migrations_paths/0)
-
-    migrations_paths
+    opts
+    |> Keyword.get_lazy(:migrations_paths, &FilesReader.get_migrations_paths/0)
     |> Task.async_stream(fn path ->
       path
       |> get_ast()
       |> Parser.parse()
-      |> reject_safety_assured()
       |> build_result(path)
     end)
     |> Stream.flat_map(fn {:ok, items} -> items end)
@@ -28,14 +25,6 @@ defmodule ExcellentMigrations.Checker do
   defp get_ast(path) do
     {:ok, ast} = Code.string_to_quoted(File.read!(path))
     ast
-  end
-
-  defp reject_safety_assured(dangers) do
-    if Keyword.get(dangers, :safety_assured) do
-      []
-    else
-      Keyword.delete(dangers, :safety_assured)
-    end
   end
 
   defp build_result(dangers, path) do

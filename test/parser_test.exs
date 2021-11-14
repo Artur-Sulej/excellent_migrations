@@ -6,8 +6,8 @@ defmodule ExcellentMigrations.ParserTest do
     assert [execute: 5, execute: 9] == Parser.parse(migration_ast1())
     assert [] == Parser.parse(migration_ast2())
     assert [] == Parser.parse(migration_ast3())
-    assert [safety_assured: :change] == Parser.parse(migration_ast4())
-    assert [safety_assured: :change, index_not_concurrently: 10] == Parser.parse(migration_ast5())
+    assert [] == Parser.parse(migration_ast4())
+    assert [] == Parser.parse(migration_ast5())
   end
 
   defp migration_ast1 do

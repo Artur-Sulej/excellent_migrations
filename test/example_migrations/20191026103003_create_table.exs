@@ -1,4 +1,4 @@
-defmodule CreateVegetables do
+defmodule ExcellentMigrations.CreateVegetables do
   @moduledoc "Some doc."
 
   # Some comment

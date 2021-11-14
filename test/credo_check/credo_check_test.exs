@@ -3,13 +3,13 @@ defmodule ExcellentMigrations.CredoCheck.CheckSafetyTest do
   alias ExcellentMigrations.CredoCheck.CheckSafety
 
   test "it should NOT report expected code" do
-    "test/example_migrations/20190718085047_create_vegetables.exs"
+    "test/example_migrations/20191026103003_create_table.exs"
     |> run_check()
     |> refute_issues()
   end
 
   test "it should report code that includes rejected module attribute names" do
-    "test/example_migrations/20180830090807_add_index_to_dumplings.exs"
+    "test/example_migrations/20191026103002_execute_raw_sql.exs"
     |> run_check()
     |> assert_issues()
   end

@@ -1,4 +1,4 @@
-defmodule CreateDumplings do
+defmodule ExcellentMigrations.CreateDumplings do
   def change do
     create table(:dumplings) do
       add(:dough, references(:dough_id, on_delete: :delete_all), null: false)

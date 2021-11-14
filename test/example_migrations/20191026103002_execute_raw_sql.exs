@@ -1,4 +1,4 @@
-defmodule AddStuffToDumplings do
+defmodule ExcellentMigrations.CreateIndexOnDumplings do
   def up do
     execute("CREATE INDEX dumplings_geog ON dumplings using GIST(Geography(geom));")
   end

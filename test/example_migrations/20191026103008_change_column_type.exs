@@ -1,4 +1,4 @@
-defmodule ChangeColumnSizeTypeToInteger do
+defmodule ExcellentMigrations.ChangeColumnSizeTypeToInteger do
   def change do
     alter table(:dumplings) do
       modify(:size, :integer)

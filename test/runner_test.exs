@@ -4,9 +4,9 @@ defmodule ExcellentMigrations.RunnerTest do
 
   test "generates warning messages for migration files" do
     file_paths = [
-      "test/example_migrations/20180718085047_create_dumplings.exs",
-      "test/example_migrations/20180830090807_add_index_to_dumplings.exs",
-      "test/example_migrations/20190718085047_create_vegetables.exs"
+      "test/example_migrations/20191026103001_create_table_and_index.exs",
+      "test/example_migrations/20191026103002_execute_raw_sql.exs",
+      "test/example_migrations/20191026103003_create_table.exs"
     ]
 
     assert {
@@ -14,22 +14,22 @@ defmodule ExcellentMigrations.RunnerTest do
              [
                %{
                  message:
-                   "Index added not concurrently in test/example_migrations/20180718085047_create_dumplings.exs:8",
-                 path: "test/example_migrations/20180718085047_create_dumplings.exs",
+                   "Index added not concurrently in test/example_migrations/20191026103001_create_table_and_index.exs:8",
+                 path: "test/example_migrations/20191026103001_create_table_and_index.exs",
                  line: 8,
                  type: :index_not_concurrently
                },
                %{
                  message:
-                   "Raw SQL used in test/example_migrations/20180830090807_add_index_to_dumplings.exs:3",
-                 path: "test/example_migrations/20180830090807_add_index_to_dumplings.exs",
+                   "Raw SQL used in test/example_migrations/20191026103002_execute_raw_sql.exs:3",
+                 path: "test/example_migrations/20191026103002_execute_raw_sql.exs",
                  line: 3,
                  type: :raw_sql
                },
                %{
                  message:
-                   "Raw SQL used in test/example_migrations/20180830090807_add_index_to_dumplings.exs:7",
-                 path: "test/example_migrations/20180830090807_add_index_to_dumplings.exs",
+                   "Raw SQL used in test/example_migrations/20191026103002_execute_raw_sql.exs:7",
+                 path: "test/example_migrations/20191026103002_execute_raw_sql.exs",
                  line: 7,
                  type: :raw_sql
                }
@@ -39,8 +39,8 @@ defmodule ExcellentMigrations.RunnerTest do
 
   test "no dangerous operations" do
     file_paths = [
-      "test/example_migrations/20190718085047_create_vegetables.exs",
-      "test/example_migrations/20190940090804_add_something_to_vegetables.exs"
+      "test/example_migrations/20191026103003_create_table.exs",
+      "test/example_migrations/20191026103004_execute_raw_sql_with_safety_assured.exs"
     ]
 
     assert :ok == Runner.check_migrations(migrations_paths: file_paths)

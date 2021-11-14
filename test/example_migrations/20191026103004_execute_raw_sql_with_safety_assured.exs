@@ -1,4 +1,4 @@
-defmodule AddSomethingToVegetables do
+defmodule ExcellentMigrations.AddSomethingToVegetables do
   @safety_assured true
 
   def up do

@@ -1,4 +1,9 @@
 defmodule ExcellentMigrations.CredoCheck.CheckSafety do
+  alias ExcellentMigrations.{
+    MessageGenerator,
+    Parser
+  }
+
   use Credo.Check,
     base_priority: :high,
     category: :warning,
@@ -15,7 +20,7 @@ defmodule ExcellentMigrations.CredoCheck.CheckSafety do
       dangers =
         source_file
         |> SourceFile.ast()
-        |> ExcellentMigrations.Parser.parse()
+        |> Parser.parse()
 
       Enum.map(dangers, fn {type, line} -> build_issue(type, line, issue_meta) end)
     else
@@ -26,8 +31,7 @@ defmodule ExcellentMigrations.CredoCheck.CheckSafety do
   defp build_issue(danger_type, line, issue_meta) do
     format_issue(
       issue_meta,
-      message: ExcellentMigrations.MessageGenerator.build_message(danger_type),
-      trigger: "@#{danger_type}",
+      message: MessageGenerator.build_message(danger_type),
       line_no: line
     )
   end

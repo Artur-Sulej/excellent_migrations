@@ -7,7 +7,7 @@ defmodule ExcellentMigrations.Runner do
 
   def check_migrations(opts \\ []) do
     opts
-    |> Keyword.get_lazy(:migrations_paths, &FilesFinder.get_migrations_paths/0)
+    |> get_migrations_paths()
     |> Task.async_stream(fn path ->
       path
       |> get_ast()
@@ -19,8 +19,9 @@ defmodule ExcellentMigrations.Runner do
     |> close()
   end
 
-  defp close(_dangers = []), do: :ok
-  defp close(dangers), do: {:error, dangers}
+  defp get_migrations_paths(opts) do
+    Keyword.get_lazy(opts, :migrations_paths, &FilesFinder.get_migrations_paths/0)
+  end
 
   defp get_ast(path) do
     {:ok, ast} = Code.string_to_quoted(File.read!(path))
@@ -37,4 +38,7 @@ defmodule ExcellentMigrations.Runner do
       }
     end)
   end
+
+  defp close(_dangers = []), do: :ok
+  defp close(dangers), do: {:error, dangers}
 end

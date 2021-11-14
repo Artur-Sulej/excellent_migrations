@@ -1,5 +1,5 @@
-defmodule ExcellentMigrations.FilesReader do
-  def get_migrations_paths do
+defmodule ExcellentMigrations.FilesFinder do
+  def get_migrations_paths(start_after) do
     "**/migrations/*.exs"
     |> Path.wildcard()
     |> Enum.reject(fn path ->

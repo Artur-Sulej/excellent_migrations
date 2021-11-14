@@ -1,13 +1,13 @@
 defmodule ExcellentMigrations.Runner do
   alias ExcellentMigrations.{
     DangersChecker,
-    FilesReader,
+    FilesFinder,
     MessageGenerator
   }
 
   def check_migrations(opts \\ []) do
     opts
-    |> Keyword.get_lazy(:migrations_paths, &FilesReader.get_migrations_paths/0)
+    |> Keyword.get_lazy(:migrations_paths, &FilesFinder.get_migrations_paths/0)
     |> Task.async_stream(fn path ->
       path
       |> get_ast()

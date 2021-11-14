@@ -30,4 +30,16 @@ defmodule ExcellentMigrations.MessageGenerator do
   def build_message(:not_null_added) do
     "Not null constraint added"
   end
+
+  def build_message(:operation_insert) do
+    "Records inserted"
+  end
+
+  def build_message(:operation_update) do
+    "Records updated"
+  end
+
+  def build_message(:operation_delete) do
+    "Records deleted"
+  end
 end

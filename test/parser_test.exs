@@ -31,6 +31,42 @@ defmodule ExcellentMigrations.ParserTest do
     assert [check_constraint_added: 1] == Parser.parse(ast)
   end
 
+  test "detects records modified" do
+    ast1 =
+      string_to_ast("""
+      %Dumpling{}
+        |> Ecto.Changeset.change(params)
+        |> Repo.insert!()
+      """)
+
+    ast2 = string_to_ast("Repo.insert_all(Vegetables, vegs)")
+    ast3 = string_to_ast("Restaurant.Repo.update_all(query, [])")
+
+    ast4 =
+      string_to_ast("""
+      Kitchen.Repo.delete_all(
+        from(m in Meat,
+          where: m.id == ^id
+        )
+      )
+      """)
+
+    ast5 =
+      string_to_ast("""
+      stuff
+        |> change()
+        |> some_fun1(data[:some_key])
+        |> some_fun2(this: data[:other_key])
+        |> Repo.update!()
+      """)
+
+    assert [operation_insert: 3] == Parser.parse(ast1)
+    assert [operation_insert: 1] == Parser.parse(ast2)
+    assert [operation_update: 1] == Parser.parse(ast3)
+    assert [operation_delete: 1] == Parser.parse(ast4)
+    assert [operation_update: 5] == Parser.parse(ast5)
+  end
+
   test "detects danger and safety assured" do
     assert [safety_assured: true, index_not_concurrently: 7] == Parser.parse(safety_assured_ast())
   end

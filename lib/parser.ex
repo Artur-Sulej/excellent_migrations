@@ -23,7 +23,8 @@ defmodule ExcellentMigrations.Parser do
       detect_column_added_with_default(code_part) ++
       detect_column_type_changed(code_part) ++
       detect_not_null_added(code_part) ++
-      detect_check_constraint(code_part)
+      detect_check_constraint(code_part) ++
+      detect_records_modified(code_part)
   end
 
   defp detect_index_not_concurrently(
@@ -88,6 +89,24 @@ defmodule ExcellentMigrations.Parser do
   end
 
   def detect_check_constraint(_), do: []
+
+  def detect_records_modified({:., location, [{:__aliases__, _, modules}, operation]}) do
+    if Enum.member?(modules, :Repo) do
+      danger =
+        operation
+        |> Atom.to_string()
+        |> String.replace_suffix("!", "")
+        |> String.replace_suffix("_all", "")
+        |> then(&"operation_#{&1}")
+        |> String.to_atom()
+
+      [{danger, Keyword.get(location, :line)}]
+    else
+      []
+    end
+  end
+
+  def detect_records_modified(_), do: []
 
   defp detect_column_added_with_default_inner({:add, location, [_, _, options]}) do
     if Keyword.has_key?(options, :default) do

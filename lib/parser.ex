@@ -54,7 +54,7 @@ defmodule ExcellentMigrations.Parser do
   end
 
   defp check_for_execute({:execute, location, _}) do
-    [{:execute, Keyword.get(location, :line)}]
+    [{:raw_sql, Keyword.get(location, :line)}]
   end
 
   defp check_for_execute([head | tail]) do

@@ -24,14 +24,14 @@ defmodule ExcellentMigrations.RunnerTest do
                    "Raw SQL used in test/example_migrations/20180830090807_add_index_to_dumplings.exs:3",
                  path: "test/example_migrations/20180830090807_add_index_to_dumplings.exs",
                  line: 3,
-                 type: :execute
+                 type: :raw_sql
                },
                %{
                  message:
                    "Raw SQL used in test/example_migrations/20180830090807_add_index_to_dumplings.exs:7",
                  path: "test/example_migrations/20180830090807_add_index_to_dumplings.exs",
                  line: 7,
-                 type: :execute
+                 type: :raw_sql
                }
              ]
            } == Runner.check_migrations(migrations_paths: file_paths)

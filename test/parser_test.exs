@@ -3,7 +3,7 @@ defmodule ExcellentMigrations.ParserTest do
   alias ExcellentMigrations.Parser
 
   test "generates warnings for migrations" do
-    assert [execute: 5, execute: 9] == Parser.parse(migration_ast1())
+    assert [raw_sql: 5, raw_sql: 9] == Parser.parse(migration_ast1())
     assert [] == Parser.parse(migration_ast2())
     assert [] == Parser.parse(migration_ast3())
     assert [safety_assured: true] == Parser.parse(migration_ast4())

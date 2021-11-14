@@ -97,7 +97,7 @@ defmodule ExcellentMigrations.Parser do
         |> Atom.to_string()
         |> String.replace_suffix("!", "")
         |> String.replace_suffix("_all", "")
-        |> then(&"operation_#{&1}")
+        |> (&"operation_#{&1}").()
         |> String.to_atom()
 
       [{danger, Keyword.get(location, :line)}]

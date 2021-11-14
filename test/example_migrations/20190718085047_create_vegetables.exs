@@ -4,7 +4,7 @@ defmodule CreateVegetables do
   # Some comment
   def change do
     create table(:vegetables) do
-      add(:color, :integer, null: false, default: 0)
+      add(:color, :integer, null: false)
     end
   end
 end

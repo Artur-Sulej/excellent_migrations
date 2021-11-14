@@ -14,7 +14,8 @@ defmodule ExcellentMigrations.Parser do
       find_raw_sql(code_part) ++
       find_safety_assured(code_part) ++
       find_column_removed(code_part) ++
-      find_table_renamed(code_part)
+      find_table_renamed(code_part) ++
+      find_column_added_with_default(code_part)
   end
 
   defp find_index_not_concurrently(
@@ -26,13 +27,13 @@ defmodule ExcellentMigrations.Parser do
     end
   end
 
+  defp find_index_not_concurrently(_), do: []
+
   defp find_column_removed({:remove, location, [_, _, _]}) do
     [{:column_removed, Keyword.get(location, :line)}]
   end
 
   defp find_column_removed(_), do: []
-
-  defp find_index_not_concurrently(_), do: []
 
   defp find_raw_sql({:execute, location, _}) do
     [{:raw_sql, Keyword.get(location, :line)}]
@@ -45,6 +46,28 @@ defmodule ExcellentMigrations.Parser do
   end
 
   defp find_table_renamed(_), do: []
+
+  def find_column_added_with_default({:alter, _, [{:table, _, _}, _]} = ast) do
+    {_ast, dangers} =
+      Macro.postwalk(ast, [], fn code_part, acc ->
+        new_acc = acc ++ find_column_added_with_default_inner(code_part)
+        {code_part, new_acc}
+      end)
+
+    dangers
+  end
+
+  def find_column_added_with_default(_), do: []
+
+  defp find_column_added_with_default_inner({:add, location, [_, _, options]}) do
+    if Keyword.has_key?(options, :default) do
+      [{:column_added_with_default, Keyword.get(location, :line)}]
+    else
+      []
+    end
+  end
+
+  defp find_column_added_with_default_inner(_), do: []
 
   defp find_safety_assured({:@, _, [{:safety_assured, _, [value]}]}) do
     [{:safety_assured, value}]

@@ -12,7 +12,8 @@ defmodule ExcellentMigrations.Parser do
   defp find_dangers(code_part) do
     find_index_not_concurrently(code_part) ++
       find_raw_sql(code_part) ++
-      find_safety_assured(code_part)
+      find_safety_assured(code_part) ++
+      find_column_removed(code_part)
   end
 
   defp find_index_not_concurrently(
@@ -23,6 +24,12 @@ defmodule ExcellentMigrations.Parser do
       _ -> [{:index_not_concurrently, Keyword.get(location, :line)}]
     end
   end
+
+  defp find_column_removed({:remove, location, [_, _, _]}) do
+    [{:column_removed, Keyword.get(location, :line)}]
+  end
+
+  defp find_column_removed(_), do: []
 
   defp find_index_not_concurrently(_), do: []
 

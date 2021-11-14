@@ -8,6 +8,16 @@ defmodule ExcellentMigrations.ParserTest do
     assert [] == Parser.parse(migration_ast3())
     assert [safety_assured: true] == Parser.parse(migration_ast4())
     assert [safety_assured: true, index_not_concurrently: 10] == Parser.parse(migration_ast5())
+    assert [column_removed: 4] == Parser.parse(remove_column_ast())
+  end
+
+  defp get_ast_from_file(path) do
+    {:ok, ast} = Code.string_to_quoted(File.read!(path))
+    ast
+  end
+
+  defp remove_column_ast do
+    get_ast_from_file("test/example_migrations/20200718085047_remove_column.exs")
   end
 
   defp migration_ast1 do

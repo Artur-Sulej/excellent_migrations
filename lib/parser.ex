@@ -22,7 +22,8 @@ defmodule ExcellentMigrations.Parser do
       detect_column_renamed(code_part) ++
       detect_column_added_with_default(code_part) ++
       detect_column_type_changed(code_part) ++
-      detect_not_null_added(code_part)
+      detect_not_null_added(code_part) ++
+      detect_check_constraint(code_part)
   end
 
   defp detect_index_not_concurrently(
@@ -81,6 +82,12 @@ defmodule ExcellentMigrations.Parser do
   end
 
   def detect_not_null_added(_), do: []
+
+  def detect_check_constraint({:create, location, [{:constraint, _, _}]}) do
+    [{:check_constraint_added, Keyword.get(location, :line)}]
+  end
+
+  def detect_check_constraint(_), do: []
 
   defp detect_column_added_with_default_inner({:add, location, [_, _, options]}) do
     if Keyword.has_key?(options, :default) do

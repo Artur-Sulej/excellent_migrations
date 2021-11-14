@@ -22,6 +22,15 @@ defmodule ExcellentMigrations.ParserTest do
     assert [column_type_changed: 1, not_null_added: 1] == Parser.parse(ast)
   end
 
+  test "detects check constraint added" do
+    ast =
+      string_to_ast(
+        "create constraint(\"dumplings\", :price_must_be_positive, check: \"price > 0\")"
+      )
+
+    assert [check_constraint_added: 1] == Parser.parse(ast)
+  end
+
   test "detects danger and safety assured" do
     assert [safety_assured: true, index_not_concurrently: 7] == Parser.parse(safety_assured_ast())
   end

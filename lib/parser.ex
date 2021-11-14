@@ -1,8 +1,12 @@
 defmodule ExcellentMigrations.Parser do
   def parse(ast) do
+    traverse_ast(ast, &find_dangers/1)
+  end
+
+  defp traverse_ast(ast, find_fun) do
     {_ast, dangers} =
       Macro.postwalk(ast, [], fn code_part, acc ->
-        new_acc = acc ++ find_dangers(code_part)
+        new_acc = acc ++ find_fun.(code_part)
         {code_part, new_acc}
       end)
 
@@ -48,13 +52,7 @@ defmodule ExcellentMigrations.Parser do
   defp find_table_renamed(_), do: []
 
   def find_column_added_with_default({:alter, _, [{:table, _, _}, _]} = ast) do
-    {_ast, dangers} =
-      Macro.postwalk(ast, [], fn code_part, acc ->
-        new_acc = acc ++ find_column_added_with_default_inner(code_part)
-        {code_part, new_acc}
-      end)
-
-    dangers
+    traverse_ast(ast, &find_column_added_with_default_inner/1)
   end
 
   def find_column_added_with_default(_), do: []

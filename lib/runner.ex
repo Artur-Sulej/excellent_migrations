@@ -1,4 +1,4 @@
-defmodule ExcellentMigrations.Checker do
+defmodule ExcellentMigrations.Runner do
   alias ExcellentMigrations.{
     FilesReader,
     MessageGenerator,

@@ -1,6 +1,6 @@
-defmodule ExcellentMigrations.CheckerTest do
+defmodule ExcellentMigrations.RunnerTest do
   use ExUnit.Case
-  alias ExcellentMigrations.Checker
+  alias ExcellentMigrations.Runner
 
   test "generates warning messages for migration files" do
     file_paths = [
@@ -34,7 +34,7 @@ defmodule ExcellentMigrations.CheckerTest do
                  type: :execute
                }
              ]
-           } == Checker.check_migrations(migrations_paths: file_paths)
+           } == Runner.check_migrations(migrations_paths: file_paths)
   end
 
   test "no dangerous operations" do
@@ -43,6 +43,6 @@ defmodule ExcellentMigrations.CheckerTest do
       "test/example_migrations/20190940090804_add_something_to_vegetables.exs"
     ]
 
-    assert :ok == Checker.check_migrations(migrations_paths: file_paths)
+    assert :ok == Runner.check_migrations(migrations_paths: file_paths)
   end
 end

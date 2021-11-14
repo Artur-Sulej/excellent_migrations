@@ -5,7 +5,7 @@ defmodule Mix.Tasks.ExcellentMigrations.CheckSafety do
 
   @shortdoc "Detects potentially dangerous operations in DB migrations"
   def run(_args) do
-    case ExcellentMigrations.Checker.check_migrations() do
+    case ExcellentMigrations.Runner.check_migrations() do
       :ok -> Logger.info("No dangerous operations detected in migrations.")
       {:error, dangers} -> Enum.each(dangers, fn %{message: message} -> Logger.warn(message) end)
     end

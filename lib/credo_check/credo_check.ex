@@ -1,7 +1,7 @@
 defmodule ExcellentMigrations.CredoCheck.CheckSafety do
   alias ExcellentMigrations.{
     MessageGenerator,
-    Parser
+    DangersChecker
   }
 
   use Credo.Check,
@@ -20,7 +20,7 @@ defmodule ExcellentMigrations.CredoCheck.CheckSafety do
       dangers =
         source_file
         |> SourceFile.ast()
-        |> Parser.parse()
+        |> DangersChecker.check_dangers()
 
       Enum.map(dangers, fn {type, line} -> build_issue(type, line, issue_meta) end)
     else

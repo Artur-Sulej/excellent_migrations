@@ -1,8 +1,8 @@
 defmodule ExcellentMigrations.Runner do
   alias ExcellentMigrations.{
+    DangersChecker,
     FilesReader,
-    MessageGenerator,
-    Parser
+    MessageGenerator
   }
 
   def check_migrations(opts \\ []) do
@@ -11,7 +11,7 @@ defmodule ExcellentMigrations.Runner do
     |> Task.async_stream(fn path ->
       path
       |> get_ast()
-      |> Parser.parse()
+      |> DangersChecker.check_dangers()
       |> build_result(path)
     end)
     |> Stream.flat_map(fn {:ok, items} -> items end)

@@ -2,15 +2,6 @@ defmodule ExcellentMigrations.Parser do
   def parse(ast) do
     ast
     |> _parse([])
-    |> reject_safety_assured()
-  end
-
-  defp reject_safety_assured(dangers) do
-    if Keyword.get(dangers, :safety_assured) do
-      []
-    else
-      Keyword.delete(dangers, :safety_assured)
-    end
   end
 
   defp _parse(

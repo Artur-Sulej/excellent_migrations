@@ -1,9 +1,13 @@
 defmodule ExcellentMigrations.MessageGenerator do
-  def build_message(:execute, path, line) do
-    "Raw SQL used in #{path}:#{line}"
+  def build_message(danger_type, path, line) do
+    "#{build_message(danger_type)} in #{path}:#{line}"
   end
 
-  def build_message(:index_not_concurrently, path, line) do
-    "Index added not concurrently in #{path}:#{line}"
+  def build_message(:execute) do
+    "Raw SQL used"
+  end
+
+  def build_message(:index_not_concurrently) do
+    "Index added not concurrently"
   end
 end

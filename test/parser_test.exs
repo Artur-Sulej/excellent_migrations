@@ -3,8 +3,13 @@ defmodule ExcellentMigrations.ParserTest do
   alias ExcellentMigrations.Parser
 
   test "detects table renamed" do
-    rename_table_ast = string_to_ast("rename(table(\"dumplings\"), to: table(\"noodles\"))")
+    rename_table_ast = string_to_ast("rename table(\"dumplings\"), to: table(\"noodles\")")
     assert [table_renamed: 1] == Parser.parse(rename_table_ast)
+  end
+
+  test "detects column renamed" do
+    rename_table_ast = string_to_ast("rename table(\"dumplings\"), :filling, to: :stuffing")
+    assert [column_renamed: 1] == Parser.parse(rename_table_ast)
   end
 
   test "detects column type changed" do

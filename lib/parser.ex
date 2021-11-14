@@ -1,29 +1,30 @@
 defmodule ExcellentMigrations.Parser do
   def parse(ast) do
-    traverse_ast(ast, &find_dangers/1)
+    traverse_ast(ast, &detect_dangers/1)
   end
 
-  defp traverse_ast(ast, find_fun) do
+  defp traverse_ast(ast, detect_fun) do
     {_ast, dangers} =
       Macro.postwalk(ast, [], fn code_part, acc ->
-        new_acc = acc ++ find_fun.(code_part)
+        new_acc = acc ++ detect_fun.(code_part)
         {code_part, new_acc}
       end)
 
     dangers
   end
 
-  defp find_dangers(code_part) do
-    find_index_not_concurrently(code_part) ++
-      find_raw_sql(code_part) ++
-      find_safety_assured(code_part) ++
-      find_column_removed(code_part) ++
-      find_table_renamed(code_part) ++
-      find_column_added_with_default(code_part) ++
-      find_column_type_changed(code_part)
+  defp detect_dangers(code_part) do
+    detect_index_not_concurrently(code_part) ++
+      detect_raw_sql(code_part) ++
+      detect_safety_assured(code_part) ++
+      detect_column_removed(code_part) ++
+      detect_table_renamed(code_part) ++
+      detect_column_renamed(code_part) ++
+      detect_column_added_with_default(code_part) ++
+      detect_column_type_changed(code_part)
   end
 
-  defp find_index_not_concurrently(
+  defp detect_index_not_concurrently(
          {:create, location, [{:index, _, [_table, _columns, options]}]}
        ) do
     case Keyword.get(options, :concurrently) do
@@ -32,39 +33,45 @@ defmodule ExcellentMigrations.Parser do
     end
   end
 
-  defp find_index_not_concurrently(_), do: []
+  defp detect_index_not_concurrently(_), do: []
 
-  defp find_column_removed({:remove, location, _}) do
+  defp detect_column_removed({:remove, location, _}) do
     [{:column_removed, Keyword.get(location, :line)}]
   end
 
-  defp find_column_removed(_), do: []
+  defp detect_column_removed(_), do: []
 
-  defp find_raw_sql({:execute, location, _}) do
+  defp detect_raw_sql({:execute, location, _}) do
     [{:raw_sql, Keyword.get(location, :line)}]
   end
 
-  defp find_raw_sql(_), do: []
+  defp detect_raw_sql(_), do: []
 
-  defp find_table_renamed({:rename, location, [{:table, _, _}, _]}) do
+  defp detect_table_renamed({:rename, location, [{:table, _, _}, [to: {:table, _, _}]]}) do
     [{:table_renamed, Keyword.get(location, :line)}]
   end
 
-  defp find_table_renamed(_), do: []
+  defp detect_table_renamed(_), do: []
 
-  def find_column_added_with_default({:alter, _, [{:table, _, _}, _]} = ast) do
-    traverse_ast(ast, &find_column_added_with_default_inner/1)
+  defp detect_column_renamed( {:rename, location, [{:table, _, _}, _, [to: _]]}) do
+    [{:column_renamed, Keyword.get(location, :line)}]
   end
 
-  def find_column_added_with_default(_), do: []
+  defp detect_column_renamed(_), do: []
 
-  def find_column_type_changed({:modify, location, [:size, :integer]}) do
+  def detect_column_added_with_default({:alter, _, [{:table, _, _}, _]} = ast) do
+    traverse_ast(ast, &detect_column_added_with_default_inner/1)
+  end
+
+  def detect_column_added_with_default(_), do: []
+
+  def detect_column_type_changed({:modify, location, _}) do
     [{:column_type_changed, Keyword.get(location, :line)}]
   end
 
-  def find_column_type_changed(_), do: []
+  def detect_column_type_changed(_), do: []
 
-  defp find_column_added_with_default_inner({:add, location, [_, _, options]}) do
+  defp detect_column_added_with_default_inner({:add, location, [_, _, options]}) do
     if Keyword.has_key?(options, :default) do
       [{:column_added_with_default, Keyword.get(location, :line)}]
     else
@@ -72,11 +79,11 @@ defmodule ExcellentMigrations.Parser do
     end
   end
 
-  defp find_column_added_with_default_inner(_), do: []
+  defp detect_column_added_with_default_inner(_), do: []
 
-  defp find_safety_assured({:@, _, [{:safety_assured, _, [value]}]}) do
+  defp detect_safety_assured({:@, _, [{:safety_assured, _, [value]}]}) do
     [{:safety_assured, value}]
   end
 
-  defp find_safety_assured(_), do: []
+  defp detect_safety_assured(_), do: []
 end

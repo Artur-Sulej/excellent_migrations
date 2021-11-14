@@ -3,18 +3,23 @@ defmodule ExcellentMigrations.ParserTest do
   alias ExcellentMigrations.Parser
 
   test "detects table renamed" do
-    rename_table_ast = string_to_ast("rename table(\"dumplings\"), to: table(\"noodles\")")
-    assert [table_renamed: 1] == Parser.parse(rename_table_ast)
+    ast = string_to_ast("rename table(\"dumplings\"), to: table(\"noodles\")")
+    assert [table_renamed: 1] == Parser.parse(ast)
   end
 
   test "detects column renamed" do
-    rename_table_ast = string_to_ast("rename table(\"dumplings\"), :filling, to: :stuffing")
-    assert [column_renamed: 1] == Parser.parse(rename_table_ast)
+    ast = string_to_ast("rename table(\"dumplings\"), :filling, to: :stuffing")
+    assert [column_renamed: 1] == Parser.parse(ast)
   end
 
   test "detects column type changed" do
-    change_column_type_ast = string_to_ast("modify(:size, :integer)")
-    assert [column_type_changed: 1] == Parser.parse(change_column_type_ast)
+    ast = string_to_ast("modify(:size, :integer, from: :string)")
+    assert [column_type_changed: 1] == Parser.parse(ast)
+  end
+
+  test "detects not null constraint added to column" do
+    ast = string_to_ast("modify :location_id, :integer, null: true")
+    assert [column_type_changed: 1, not_null_added: 1] == Parser.parse(ast)
   end
 
   test "detects danger and safety assured" do
@@ -26,8 +31,8 @@ defmodule ExcellentMigrations.ParserTest do
   end
 
   test "detects index added not concurrently" do
-    index_not_concurrently_ast = string_to_ast("create index(:dumplings, [:dough], unique: true)")
-    assert [index_not_concurrently: 1] == Parser.parse(index_not_concurrently_ast)
+    ast = string_to_ast("create index(:dumplings, [:dough], unique: true)")
+    assert [index_not_concurrently: 1] == Parser.parse(ast)
   end
 
   test "detects column added with default" do
@@ -38,13 +43,12 @@ defmodule ExcellentMigrations.ParserTest do
   end
 
   test "detects column removed" do
-    assert [column_removed: 1] == Parser.parse(string_to_ast("remove(:size, :string)"))
-
-    assert [column_removed: 1] ==
-             Parser.parse(string_to_ast("remove(:size, :string, default: \"big\")"))
-
-    assert [column_removed: 1] ==
-             Parser.parse(string_to_ast("remove(:size, :string)"))
+    ast1 = string_to_ast("remove(:size, :string)")
+    assert [column_removed: 1] == Parser.parse(ast1)
+    ast2 = string_to_ast("remove(:size, :string, default: \"big\")")
+    assert [column_removed: 1] == Parser.parse(ast2)
+    ast3 = string_to_ast("remove(:size, :string)")
+    assert [column_removed: 1] == Parser.parse(ast3)
   end
 
   defp add_column_with_default_in_existing_table_ast do

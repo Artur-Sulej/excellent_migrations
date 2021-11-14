@@ -26,4 +26,8 @@ defmodule ExcellentMigrations.MessageGenerator do
   def build_message(:column_renamed) do
     "Column renamed"
   end
+
+  def build_message(:not_null_added) do
+    "Not null constraint added"
+  end
 end

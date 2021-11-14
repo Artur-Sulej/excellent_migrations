@@ -21,7 +21,8 @@ defmodule ExcellentMigrations.Parser do
       detect_table_renamed(code_part) ++
       detect_column_renamed(code_part) ++
       detect_column_added_with_default(code_part) ++
-      detect_column_type_changed(code_part)
+      detect_column_type_changed(code_part) ++
+      detect_not_null_added(code_part)
   end
 
   defp detect_index_not_concurrently(
@@ -53,7 +54,7 @@ defmodule ExcellentMigrations.Parser do
 
   defp detect_table_renamed(_), do: []
 
-  defp detect_column_renamed( {:rename, location, [{:table, _, _}, _, [to: _]]}) do
+  defp detect_column_renamed({:rename, location, [{:table, _, _}, _, [to: _]]}) do
     [{:column_renamed, Keyword.get(location, :line)}]
   end
 
@@ -70,6 +71,16 @@ defmodule ExcellentMigrations.Parser do
   end
 
   def detect_column_type_changed(_), do: []
+
+  def detect_not_null_added({:modify, location, [_, _, options]}) do
+    if Keyword.get(options, :null) do
+      [{:not_null_added, Keyword.get(location, :line)}]
+    else
+      []
+    end
+  end
+
+  def detect_not_null_added(_), do: []
 
   defp detect_column_added_with_default_inner({:add, location, [_, _, options]}) do
     if Keyword.has_key?(options, :default) do

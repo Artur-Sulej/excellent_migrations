@@ -9,6 +9,7 @@ defmodule ExcellentMigrations.ParserTest do
     assert [safety_assured: true] == Parser.parse(migration_ast4())
     assert [safety_assured: true, index_not_concurrently: 10] == Parser.parse(migration_ast5())
     assert [column_removed: 4] == Parser.parse(remove_column_ast())
+    assert [table_renamed: 3] == Parser.parse(rename_table_ast())
   end
 
   defp get_ast_from_file(path) do
@@ -18,6 +19,10 @@ defmodule ExcellentMigrations.ParserTest do
 
   defp remove_column_ast do
     get_ast_from_file("test/example_migrations/20200718085047_remove_column.exs")
+  end
+
+  defp rename_table_ast do
+    get_ast_from_file("test/example_migrations/20200818085047_rename_table.exs")
   end
 
   defp migration_ast1 do

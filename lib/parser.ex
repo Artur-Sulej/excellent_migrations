@@ -19,7 +19,8 @@ defmodule ExcellentMigrations.Parser do
       find_safety_assured(code_part) ++
       find_column_removed(code_part) ++
       find_table_renamed(code_part) ++
-      find_column_added_with_default(code_part)
+      find_column_added_with_default(code_part) ++
+      find_column_type_changed(code_part)
   end
 
   defp find_index_not_concurrently(
@@ -56,6 +57,12 @@ defmodule ExcellentMigrations.Parser do
   end
 
   def find_column_added_with_default(_), do: []
+
+  def find_column_type_changed({:modify, location, [:size, :integer]}) do
+    [{:column_type_changed, Keyword.get(location, :line)}]
+  end
+
+  def find_column_type_changed(_), do: []
 
   defp find_column_added_with_default_inner({:add, location, [_, _, options]}) do
     if Keyword.has_key?(options, :default) do

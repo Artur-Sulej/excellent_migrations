@@ -11,11 +11,16 @@ defmodule ExcellentMigrations.ParserTest do
     assert [column_removed: 4] == Parser.parse(remove_column_ast())
     assert [table_renamed: 3] == Parser.parse(rename_table_ast())
     assert [column_added_with_default: 4] == Parser.parse(add_column_with_default_ast())
+    assert [column_type_changed: 4] == Parser.parse(change_column_type_ast())
   end
 
   defp get_ast_from_file(path) do
     {:ok, ast} = Code.string_to_quoted(File.read!(path))
     ast
+  end
+
+  defp create_table_ast do
+    get_ast_from_file("test/example_migrations/20180718085047_create_dumplings.exs")
   end
 
   defp remove_column_ast do
@@ -28,6 +33,10 @@ defmodule ExcellentMigrations.ParserTest do
 
   defp add_column_with_default_ast do
     get_ast_from_file("test/example_migrations/20200918085047_add_column_with_default_value.exs")
+  end
+
+  defp change_column_type_ast do
+    get_ast_from_file("test/example_migrations/20200918085049_change_column_type.exs")
   end
 
   defp migration_ast1 do

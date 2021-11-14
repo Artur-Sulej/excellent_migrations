@@ -34,7 +34,7 @@ defmodule ExcellentMigrations.Parser do
 
   defp find_index_not_concurrently(_), do: []
 
-  defp find_column_removed({:remove, location, [_, _, _]}) do
+  defp find_column_removed({:remove, location, _}) do
     [{:column_removed, Keyword.get(location, :line)}]
   end
 

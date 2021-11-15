@@ -39,6 +39,6 @@ defmodule ExcellentMigrations.Runner do
     end)
   end
 
-  defp close(_dangers = []), do: :ok
-  defp close(dangers), do: {:error, dangers}
+  defp close(_dangers = []), do: :safe
+  defp close(dangers), do: {:dangerous, dangers}
 end

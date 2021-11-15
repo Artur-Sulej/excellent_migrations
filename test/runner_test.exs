@@ -10,7 +10,7 @@ defmodule ExcellentMigrations.RunnerTest do
     ]
 
     assert {
-             :error,
+             :dangerous,
              [
                %{
                  message:
@@ -43,6 +43,6 @@ defmodule ExcellentMigrations.RunnerTest do
       "test/example_migrations/20191026103004_execute_raw_sql_with_safety_assured.exs"
     ]
 
-    assert :ok == Runner.check_migrations(migrations_paths: file_paths)
+    assert :safe == Runner.check_migrations(migrations_paths: file_paths)
   end
 end

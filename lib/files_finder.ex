@@ -4,11 +4,14 @@ defmodule ExcellentMigrations.FilesFinder do
 
     "**/migrations/*.exs"
     |> Path.wildcard()
-    |> Enum.reject(fn path ->
-      String.starts_with?(path, ["deps/", "_build/"]) ||
-        String.contains?(path, ["/deps/", "/_build/"]) ||
-        migration_timestamp(path) <= start_after
-    end)
+    |> Enum.filter(&relevant_file?(&1, start_after))
+  end
+
+  def relevant_file?(path, start_after) do
+    !String.starts_with?(path, ["deps/", "_build/"]) &&
+      !String.contains?(path, ["/deps/", "/_build/"]) &&
+      String.contains?(path, "migrations/") &&
+      migration_timestamp(path) > start_after
   end
 
   defp migration_timestamp(path) do

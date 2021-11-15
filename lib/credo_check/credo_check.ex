@@ -1,7 +1,8 @@
 defmodule ExcellentMigrations.CredoCheck.CheckSafety do
   alias ExcellentMigrations.{
     MessageGenerator,
-    DangersChecker
+    DangersChecker,
+    FilesFinder
   }
 
   use Credo.Check,
@@ -14,23 +15,13 @@ defmodule ExcellentMigrations.CredoCheck.CheckSafety do
     ]
 
   def run(source_file, params \\ []) do
-    if relevant_file?(source_file.filename) do
+    start_after = Application.get_env(:excellent_migrations, :start_after)
+
+    if FilesFinder.relevant_file?(source_file.filename, start_after) do
       detect_dangers(source_file, params)
     else
       []
     end
-  end
-
-  defp relevant_file?(path) do
-    start_after = Application.get_env(:excellent_migrations, :start_after)
-    String.contains?(path, "migrations/") && migration_timestamp(path) > start_after
-  end
-
-  defp migration_timestamp(path) do
-    path
-    |> Path.basename()
-    |> String.split("_")
-    |> hd()
   end
 
   defp detect_dangers(source_file, params) do

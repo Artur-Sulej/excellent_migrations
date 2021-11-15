@@ -1,0 +1,17 @@
+defmodule Mix.Tasks.ExcellentMigrations.Migrate do
+  @moduledoc "Runs `ecto.migrate` task only if no dangerous operations were detected in migrations."
+  use Mix.Task
+  require Logger
+
+  @shortdoc "Runs `ecto.migrate` if migrations are safe"
+  def run(args) do
+    case ExcellentMigrations.Runner.check_migrations() do
+      :safe ->
+        Mix.Task.run("ecto.migrate", args)
+
+      {:dangerous, dangers} ->
+        Enum.each(dangers, fn %{message: message} -> Logger.error(message) end)
+        System.halt(1)
+    end
+  end
+end

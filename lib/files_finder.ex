@@ -7,7 +7,14 @@ defmodule ExcellentMigrations.FilesFinder do
     |> Enum.reject(fn path ->
       String.starts_with?(path, ["deps/", "_build/"]) ||
         String.contains?(path, ["/deps/", "/_build/"]) ||
-        Path.basename(path) <= start_after
+        migration_timestamp(path) <= start_after
     end)
+  end
+
+  defp migration_timestamp(path) do
+    path
+    |> Path.basename()
+    |> String.split("_")
+    |> hd()
   end
 end

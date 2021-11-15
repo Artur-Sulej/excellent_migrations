@@ -24,7 +24,8 @@ defmodule ExcellentMigrations.Parser do
       detect_column_modified(code_part) ++
       detect_not_null_added(code_part) ++
       detect_check_constraint(code_part) ++
-      detect_records_modified(code_part)
+      detect_records_modified(code_part) ++
+      detect_json_column_added(code_part)
   end
 
   defp detect_index_not_concurrently(
@@ -93,6 +94,12 @@ defmodule ExcellentMigrations.Parser do
   end
 
   def detect_not_null_added(_), do: []
+
+  def detect_json_column_added({:add, location, [_, :json, _]}) do
+    [{:json_column_added, Keyword.get(location, :line)}]
+  end
+
+  def detect_json_column_added(_), do: []
 
   def detect_check_constraint({:create, location, [{:constraint, _, _}]}) do
     [{:check_constraint_added, Keyword.get(location, :line)}]

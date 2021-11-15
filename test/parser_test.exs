@@ -22,6 +22,13 @@ defmodule ExcellentMigrations.ParserTest do
     assert [column_type_changed: 1, not_null_added: 1] == Parser.parse(ast)
   end
 
+  test "detects json column added" do
+    ast1 = string_to_ast("add :details, :json, null: false, default: \"{}\"")
+    ast2 = string_to_ast("add :details, :jsonb, null: false, default: \"{}\"")
+    assert [json_column_added: 1] == Parser.parse(ast1)
+    assert [] == Parser.parse(ast2)
+  end
+
   test "detects reference added" do
     ast1 =
       string_to_ast("modify(:ingredient_id, references(:ingredients), from: references(:stuff))")

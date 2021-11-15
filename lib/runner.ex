@@ -20,7 +20,9 @@ defmodule ExcellentMigrations.Runner do
   end
 
   defp get_migrations_paths(opts) do
-    Keyword.get_lazy(opts, :migrations_paths, &FilesFinder.get_migrations_paths/0)
+    opts
+    |> Keyword.get_lazy(:migrations_paths, &FilesFinder.get_migrations_paths/0)
+    |> Enum.sort()
   end
 
   defp get_ast(path) do

@@ -90,7 +90,8 @@ defmodule ExcellentMigrations.ParserTest do
   end
 
   test "detects danger and safety assured" do
-    assert [safety_assured: true, index_not_concurrently: 7] == Parser.parse(safety_assured_ast())
+    assert [safety_assured: [:index_not_concurrently], index_not_concurrently: 7] ==
+             Parser.parse(safety_assured_ast())
   end
 
   test "detects raw SQL executed" do
@@ -177,7 +178,7 @@ defmodule ExcellentMigrations.ParserTest do
 
   defp safety_assured_ast do
     string_to_ast("""
-    @safety_assured true
+    @safety_assured [:index_not_concurrently]
     def change do
       alter(table(:dumplings)) do
         add(:recipe_id, references(:recipes, on_delete: :delete_all), null: false)

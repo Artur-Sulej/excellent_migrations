@@ -1,5 +1,5 @@
 defmodule ExcellentMigrations.AddSomethingToVegetables do
-  @safety_assured true
+  @safety_assured :all
 
   def up do
     execute("ALTER TABLE vegetables ADD COLUMN something integer;")

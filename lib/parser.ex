@@ -1,4 +1,6 @@
 defmodule ExcellentMigrations.Parser do
+  @max_columns_for_index 3
+
   def parse(ast) do
     traverse_ast(ast, &detect_dangers/1)
   end
@@ -15,6 +17,7 @@ defmodule ExcellentMigrations.Parser do
 
   defp detect_dangers(code_part) do
     detect_index_not_concurrently(code_part) ++
+      detect_many_columns_index(code_part) ++
       detect_raw_sql(code_part) ++
       detect_safety_assured(code_part) ++
       detect_column_removed(code_part) ++
@@ -28,9 +31,11 @@ defmodule ExcellentMigrations.Parser do
       detect_json_column_added(code_part)
   end
 
-  defp detect_index_not_concurrently(
-         {:create, location, [{:index, _, [_table, _columns, options]}]}
-       ) do
+  defp detect_index_not_concurrently({:create, location, [{:index, _, [_, _]}]}) do
+    [{:index_not_concurrently, Keyword.get(location, :line)}]
+  end
+
+  defp detect_index_not_concurrently({:create, location, [{:index, _, [_, _, options]}]}) do
     case Keyword.get(options, :concurrently) do
       true -> []
       _ -> [{:index_not_concurrently, Keyword.get(location, :line)}]
@@ -38,6 +43,29 @@ defmodule ExcellentMigrations.Parser do
   end
 
   defp detect_index_not_concurrently(_), do: []
+
+  defp detect_many_columns_index({:create, location, [{:index, _, [_, columns, options]}]}) do
+    cond do
+      Keyword.get(options, :unique) ->
+        []
+
+      Enum.count(columns) > @max_columns_for_index ->
+        [{:many_columns_index, Keyword.get(location, :line)}]
+
+      true ->
+        []
+    end
+  end
+
+  defp detect_many_columns_index({:create, location, [{:index, _, [_, columns]}]}) do
+    if Enum.count(columns) > @max_columns_for_index do
+      [{:many_columns_index, Keyword.get(location, :line)}]
+    else
+      []
+    end
+  end
+
+  defp detect_many_columns_index(_), do: []
 
   defp detect_column_removed({:remove, location, _}) do
     [{:column_removed, Keyword.get(location, :line)}]

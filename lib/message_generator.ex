@@ -11,6 +11,10 @@ defmodule ExcellentMigrations.MessageGenerator do
     "Index added not concurrently"
   end
 
+  def build_message(:many_columns_index) do
+    "Index added many columns"
+  end
+
   def build_message(:column_added_with_default) do
     "Column with default value added to existing table"
   end

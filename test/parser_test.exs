@@ -98,8 +98,37 @@ defmodule ExcellentMigrations.ParserTest do
   end
 
   test "detects index added not concurrently" do
-    ast = string_to_ast("create index(:dumplings, [:dough], unique: true)")
-    assert [index_not_concurrently: 1] == Parser.parse(ast)
+    ast_not_conc = string_to_ast("create index(:dumplings, [:dough])")
+    ast__not_conc_with_opts = string_to_ast("create index(:dumplings, [:dough], unique: true)")
+    ast_conc_false = string_to_ast("create index(:dumplings, [:dough], concurrently: false)")
+    ast_conc_true = string_to_ast("create index(:dumplings, [:dough], concurrently: true)")
+
+    assert [index_not_concurrently: 1] == Parser.parse(ast_not_conc)
+    assert [index_not_concurrently: 1] == Parser.parse(ast__not_conc_with_opts)
+    assert [index_not_concurrently: 1] == Parser.parse(ast_conc_false)
+    assert [] == Parser.parse(ast_conc_true)
+  end
+
+  test "detects index with too many columns" do
+    ast_too_many_not_concurrently =
+      string_to_ast("create index(\"ingredients\", [:a, :b, :c, :d])")
+
+    ast_many_columns =
+      string_to_ast("create index(:ingredients, [:a, :b, :c, :d], concurrently: true)")
+
+    ast_many_but_unique =
+      string_to_ast(
+        "create index(\"ingredients\", [:a, :b, :c, :d], concurrently: true, unique: true)"
+      )
+
+    ast_ok = string_to_ast("create index(\"ingredients\", [:a, :b, :c], concurrently: true)")
+
+    assert [index_not_concurrently: 1, many_columns_index: 1] ==
+             Parser.parse(ast_too_many_not_concurrently)
+
+    assert [many_columns_index: 1] == Parser.parse(ast_many_columns)
+    assert [] == Parser.parse(ast_many_but_unique)
+    assert [] == Parser.parse(ast_ok)
   end
 
   test "detects column added with default" do

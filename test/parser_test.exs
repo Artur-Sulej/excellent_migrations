@@ -22,6 +22,21 @@ defmodule ExcellentMigrations.ParserTest do
     assert [column_type_changed: 1, not_null_added: 1] == Parser.parse(ast)
   end
 
+  test "detects reference added" do
+    ast1 =
+      string_to_ast("modify(:ingredient_id, references(:ingredients), from: references(:stuff))")
+
+    ast2 =
+      string_to_ast("""
+      alter table(:recipes) do
+        modify :ingredient_id, references(:ingredients)
+      end
+      """)
+
+    assert [column_reference_added: 1] == Parser.parse(ast1)
+    assert [column_reference_added: 2] == Parser.parse(ast2)
+  end
+
   test "detects check constraint added" do
     ast =
       string_to_ast(

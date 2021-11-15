@@ -21,7 +21,7 @@ defmodule ExcellentMigrations.Parser do
       detect_table_renamed(code_part) ++
       detect_column_renamed(code_part) ++
       detect_column_added_with_default(code_part) ++
-      detect_column_type_changed(code_part) ++
+      detect_column_modified(code_part) ++
       detect_not_null_added(code_part) ++
       detect_check_constraint(code_part) ++
       detect_records_modified(code_part)
@@ -68,11 +68,21 @@ defmodule ExcellentMigrations.Parser do
 
   def detect_column_added_with_default(_), do: []
 
-  def detect_column_type_changed({:modify, location, _}) do
+  def detect_column_modified(
+        {:modify, location, [_, {:references, _, _}, [from: {:references, _, _}]]}
+      ) do
+    [{:column_reference_added, Keyword.get(location, :line)}]
+  end
+
+  def detect_column_modified({:modify, location, [_, {:references, _, _}]}) do
+    [{:column_reference_added, Keyword.get(location, :line)}]
+  end
+
+  def detect_column_modified({:modify, location, _}) do
     [{:column_type_changed, Keyword.get(location, :line)}]
   end
 
-  def detect_column_type_changed(_), do: []
+  def detect_column_modified(_), do: []
 
   def detect_not_null_added({:modify, location, [_, _, options]}) do
     if Keyword.get(options, :null) do

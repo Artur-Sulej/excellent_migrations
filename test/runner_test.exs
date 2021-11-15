@@ -24,14 +24,14 @@ defmodule ExcellentMigrations.RunnerTest do
                    "Raw SQL used in test/example_migrations/20191026103002_execute_raw_sql.exs:3",
                  path: "test/example_migrations/20191026103002_execute_raw_sql.exs",
                  line: 3,
-                 type: :raw_sql
+                 type: :raw_sql_executed
                },
                %{
                  message:
                    "Raw SQL used in test/example_migrations/20191026103002_execute_raw_sql.exs:7",
                  path: "test/example_migrations/20191026103002_execute_raw_sql.exs",
                  line: 7,
-                 type: :raw_sql
+                 type: :raw_sql_executed
                }
              ]
            } == Runner.check_migrations(migrations_paths: file_paths)

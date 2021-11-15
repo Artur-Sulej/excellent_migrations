@@ -74,7 +74,7 @@ defmodule ExcellentMigrations.Parser do
   defp detect_column_removed(_), do: []
 
   defp detect_raw_sql({:execute, location, _}) do
-    [{:raw_sql, Keyword.get(location, :line)}]
+    [{:raw_sql_executed, Keyword.get(location, :line)}]
   end
 
   defp detect_raw_sql(_), do: []

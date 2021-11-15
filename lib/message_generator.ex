@@ -3,7 +3,7 @@ defmodule ExcellentMigrations.MessageGenerator do
     "#{build_message(danger_type)} in #{path}:#{line}"
   end
 
-  def build_message(:raw_sql) do
+  def build_message(:raw_sql_executed) do
     "Raw SQL used"
   end
 

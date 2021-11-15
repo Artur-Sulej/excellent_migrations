@@ -94,7 +94,7 @@ defmodule ExcellentMigrations.ParserTest do
   end
 
   test "detects raw SQL executed" do
-    assert [raw_sql: 2, raw_sql: 6] == Parser.parse(raw_sql_executed_ast())
+    assert [raw_sql_executed: 2, raw_sql_executed: 6] == Parser.parse(raw_sql_executed_ast())
   end
 
   test "detects index added not concurrently" do

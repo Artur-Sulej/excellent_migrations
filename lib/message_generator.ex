@@ -35,6 +35,10 @@ defmodule ExcellentMigrations.MessageGenerator do
     "Not null constraint added"
   end
 
+  def build_message(:column_type_changed) do
+    "Column type changed"
+  end
+
   def build_message(:operation_insert) do
     "Records inserted"
   end

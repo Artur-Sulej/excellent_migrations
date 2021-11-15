@@ -14,18 +14,34 @@ defmodule ExcellentMigrations.CredoCheck.CheckSafety do
     ]
 
   def run(source_file, params \\ []) do
-    if String.contains?(source_file.filename, "migrations/") do
-      issue_meta = IssueMeta.for(source_file, params)
-
-      dangers =
-        source_file
-        |> SourceFile.ast()
-        |> DangersChecker.check_dangers()
-
-      Enum.map(dangers, fn {type, line} -> build_issue(type, line, issue_meta) end)
+    if relevant_file?(source_file.filename) do
+      detect_dangers(source_file, params)
     else
       []
     end
+  end
+
+  defp relevant_file?(path) do
+    start_after = Application.get_env(:excellent_migrations, :start_after)
+    String.contains?(path, "migrations/") && migration_timestamp(path) > start_after
+  end
+
+  defp migration_timestamp(path) do
+    path
+    |> Path.basename()
+    |> String.split("_")
+    |> hd()
+  end
+
+  defp detect_dangers(source_file, params) do
+    issue_meta = IssueMeta.for(source_file, params)
+
+    dangers =
+      source_file
+      |> SourceFile.ast()
+      |> DangersChecker.check_dangers()
+
+    Enum.map(dangers, fn {type, line} -> build_issue(type, line, issue_meta) end)
   end
 
   defp build_issue(danger_type, line, issue_meta) do

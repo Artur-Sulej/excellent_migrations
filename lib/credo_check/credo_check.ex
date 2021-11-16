@@ -4,9 +4,9 @@ defmodule ExcellentMigrations.CredoCheck.CheckSafety do
   """
 
   alias ExcellentMigrations.{
-    MessageGenerator,
     DangersDetector,
-    FilesFinder
+    FilesFinder,
+    MessageGenerator
   }
 
   use Credo.Check,

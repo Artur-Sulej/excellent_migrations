@@ -3,12 +3,16 @@ defmodule ExcellentMigrations.ParserTest do
   alias ExcellentMigrations.Parser
 
   test "detects table renamed" do
-    ast = string_to_ast("rename table(\"dumplings\"), to: table(\"noodles\")")
+    ast =
+      string_to_ast(~s"""
+      rename table("dumplings"), to: table("noodles")
+      """)
+
     assert [table_renamed: 1] == Parser.parse(ast)
   end
 
   test "detects column renamed" do
-    ast = string_to_ast("rename table(\"dumplings\"), :filling, to: :stuffing")
+    ast = string_to_ast("rename table(:dumplings), :filling, to: :stuffing")
     assert [column_renamed: 1] == Parser.parse(ast)
   end
 
@@ -23,8 +27,8 @@ defmodule ExcellentMigrations.ParserTest do
   end
 
   test "detects json column added" do
-    ast1 = string_to_ast("add :details, :json, null: false, default: \"{}\"")
-    ast2 = string_to_ast("add :details, :jsonb, null: false, default: \"{}\"")
+    ast1 = string_to_ast(~s(add :details, :json, null: false, default: "{}"))
+    ast2 = string_to_ast(~s(add :details, :jsonb, null: false, default: "{}"))
     assert [json_column_added: 1] == Parser.parse(ast1)
     assert [] == Parser.parse(ast2)
   end
@@ -46,9 +50,9 @@ defmodule ExcellentMigrations.ParserTest do
 
   test "detects check constraint added" do
     ast =
-      string_to_ast(
-        "create constraint(\"dumplings\", :price_must_be_positive, check: \"price > 0\")"
-      )
+      string_to_ast(~s"""
+      create constraint("dumplings", :price_must_be_positive, check: "price > 0")
+      """)
 
     assert [check_constraint_added: 1] == Parser.parse(ast)
   end
@@ -142,10 +146,9 @@ defmodule ExcellentMigrations.ParserTest do
   test "detects column removed" do
     ast1 = string_to_ast("remove(:size, :string)")
     assert [column_removed: 1] == Parser.parse(ast1)
+
     ast2 = string_to_ast("remove(:size, :string, default: \"big\")")
     assert [column_removed: 1] == Parser.parse(ast2)
-    ast3 = string_to_ast("remove(:size, :string)")
-    assert [column_removed: 1] == Parser.parse(ast3)
   end
 
   defp add_column_with_default_in_existing_table_ast do

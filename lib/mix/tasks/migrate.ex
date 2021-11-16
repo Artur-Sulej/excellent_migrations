@@ -10,7 +10,12 @@ defmodule Mix.Tasks.ExcellentMigrations.Migrate do
         Mix.Task.run("ecto.migrate", args)
 
       {:dangerous, dangers} ->
-        Enum.each(dangers, fn %{message: message} -> Logger.error(message) end)
+        Enum.each(dangers, fn danger ->
+          danger
+          |> ExcellentMigrations.MessageGenerator.build_message()
+          |> Logger.error()
+        end)
+
         System.halt(1)
     end
   end

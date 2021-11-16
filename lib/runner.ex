@@ -6,8 +6,7 @@ defmodule ExcellentMigrations.Runner do
 
   alias ExcellentMigrations.{
     DangersDetector,
-    FilesFinder,
-    MessageGenerator
+    FilesFinder
   }
 
   @type danger_type ::
@@ -27,8 +26,7 @@ defmodule ExcellentMigrations.Runner do
   @type danger :: %{
           type: danger_type,
           path: String.t(),
-          line: integer,
-          message: String.t()
+          line: integer
         }
 
   @doc """
@@ -73,8 +71,7 @@ defmodule ExcellentMigrations.Runner do
       %{
         type: type,
         path: path,
-        line: line,
-        message: MessageGenerator.build_message(type, path, line)
+        line: line
       }
     end)
   end

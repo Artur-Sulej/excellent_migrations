@@ -13,22 +13,16 @@ defmodule ExcellentMigrations.RunnerTest do
              :dangerous,
              [
                %{
-                 message:
-                   "Index added not concurrently in test/example_migrations/20191026103001_create_table_and_index.exs:8",
                  path: "test/example_migrations/20191026103001_create_table_and_index.exs",
                  line: 8,
                  type: :index_not_concurrently
                },
                %{
-                 message:
-                   "Raw SQL used in test/example_migrations/20191026103002_execute_raw_sql.exs:3",
                  path: "test/example_migrations/20191026103002_execute_raw_sql.exs",
                  line: 3,
                  type: :raw_sql_executed
                },
                %{
-                 message:
-                   "Raw SQL used in test/example_migrations/20191026103002_execute_raw_sql.exs:7",
                  path: "test/example_migrations/20191026103002_execute_raw_sql.exs",
                  line: 7,
                  type: :raw_sql_executed

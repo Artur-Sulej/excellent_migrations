@@ -1,4 +1,6 @@
 defmodule ExcellentMigrations.MessageGenerator do
+  @moduledoc false
+
   def build_message(danger_type, path, line) do
     "#{build_message(danger_type)} in #{path}:#{line}"
   end

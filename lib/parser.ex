@@ -1,4 +1,5 @@
 defmodule ExcellentMigrations.Parser do
+  @moduledoc false
   @max_columns_for_index 3
 
   def parse(ast) do

@@ -1,4 +1,8 @@
 defmodule ExcellentMigrations.CredoCheck.CheckSafety do
+  @moduledoc """
+  Custom Credo check to be used in `.credo.exs` file.
+  """
+
   alias ExcellentMigrations.{
     MessageGenerator,
     DangersChecker,
@@ -14,6 +18,7 @@ defmodule ExcellentMigrations.CredoCheck.CheckSafety do
       """
     ]
 
+  @doc false
   def run(source_file, params \\ []) do
     start_after = Application.get_env(:excellent_migrations, :start_after)
 

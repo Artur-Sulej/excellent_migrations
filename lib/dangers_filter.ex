@@ -1,4 +1,6 @@
 defmodule ExcellentMigrations.DangersFilter do
+  @moduledoc false
+
   def reject_dangers(dangers, ignored_types) do
     dangers
     |> reject_safety_assured_types()

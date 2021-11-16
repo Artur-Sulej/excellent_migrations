@@ -1,4 +1,6 @@
 defmodule ExcellentMigrations.FilesFinder do
+  @moduledoc false
+
   def get_migrations_paths do
     start_after = Application.get_env(:excellent_migrations, :start_after)
 

@@ -12,18 +12,19 @@ defmodule ExcellentMigrations.DangersDetector do
   @type ast :: list | tuple | atom | String.t()
 
   @type danger_type ::
-          :raw_sql_executed
+          :column_added_with_default
+          | :column_removed
+          | :column_renamed
+          | :column_type_changed
           | :index_not_concurrently
           | :many_columns_index
-          | :column_added_with_default
-          | :column_removed
-          | :table_renamed
-          | :column_renamed
           | :not_null_added
-          | :column_type_changed
+          | :operation_delete
           | :operation_insert
           | :operation_update
-          | :operation_delete
+          | :raw_sql_executed
+          | :table_dropped
+          | :table_renamed
 
   @type line :: integer
 

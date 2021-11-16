@@ -25,6 +25,10 @@ defmodule ExcellentMigrations.MessageGenerator do
     "Column removed"
   end
 
+  def build_message(:table_dropped) do
+    "Table dropped"
+  end
+
   def build_message(:table_renamed) do
     "Table renamed"
   end

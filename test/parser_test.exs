@@ -151,6 +151,18 @@ defmodule ExcellentMigrations.ParserTest do
     assert [column_removed: 1] == Parser.parse(ast2)
   end
 
+  test "detects table dropped" do
+    ast1 = string_to_ast("drop_if_exists table(:recipes), mode: :cascade")
+    ast2 = string_to_ast("drop_if_exists table(:recipes)")
+    ast3 = string_to_ast("drop table(:recipes), mode: :cascade")
+    ast4 = string_to_ast("drop table(:recipes)")
+
+    assert [table_dropped: 1] == Parser.parse(ast1)
+    assert [table_dropped: 1] == Parser.parse(ast2)
+    assert [table_dropped: 1] == Parser.parse(ast3)
+    assert [table_dropped: 1] == Parser.parse(ast4)
+  end
+
   defp add_column_with_default_in_existing_table_ast do
     string_to_ast("""
     alter table("dumplings") do

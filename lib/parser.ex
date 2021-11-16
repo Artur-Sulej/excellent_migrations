@@ -22,6 +22,7 @@ defmodule ExcellentMigrations.Parser do
       detect_raw_sql(code_part) ++
       detect_safety_assured(code_part) ++
       detect_column_removed(code_part) ++
+      detect_table_dropped(code_part) ++
       detect_table_renamed(code_part) ++
       detect_column_renamed(code_part) ++
       detect_column_added_with_default(code_part) ++
@@ -73,6 +74,24 @@ defmodule ExcellentMigrations.Parser do
   end
 
   defp detect_column_removed(_), do: []
+
+  defp detect_table_dropped({:drop, location, [{:table, _, _}]}) do
+    [{:table_dropped, Keyword.get(location, :line)}]
+  end
+
+  defp detect_table_dropped({:drop, location, [{:table, _, _}, _]}) do
+    [{:table_dropped, Keyword.get(location, :line)}]
+  end
+
+  defp detect_table_dropped({:drop_if_exists, location, [{:table, _, _}]}) do
+    [{:table_dropped, Keyword.get(location, :line)}]
+  end
+
+  defp detect_table_dropped({:drop_if_exists, location, [{:table, _, _}, _]}) do
+    [{:table_dropped, Keyword.get(location, :line)}]
+  end
+
+  defp detect_table_dropped(_), do: []
 
   defp detect_raw_sql({:execute, location, _}) do
     [{:raw_sql_executed, Keyword.get(location, :line)}]

@@ -1,10 +1,13 @@
-defmodule ExcellentMigrations.DangersChecker do
+defmodule ExcellentMigrations.DangersDetector do
   @moduledoc """
   This module finds potentially dangerous or destructive database operations in a given
   migration AST.
   """
 
-  alias ExcellentMigrations.{DangersFilter, Parser}
+  alias ExcellentMigrations.{
+    DangersFilter,
+    Parser
+  }
 
   @type ast :: list | tuple | atom | String.t()
 
@@ -49,11 +52,11 @@ defmodule ExcellentMigrations.DangersChecker do
            ]}
         ]
       ]}}
-      iex> ExcellentMigrations.DangersChecker.check_dangers(ast)
+      iex> ExcellentMigrations.DangersDetector.detect_dangers(ast)
       [column_removed: 2, column_removed: 3]
   """
-  @spec check_dangers(ast) :: [{danger_type, line}]
-  def check_dangers(ast) do
+  @spec detect_dangers(ast) :: [{danger_type, line}]
+  def detect_dangers(ast) do
     ast
     |> Parser.parse()
     |> DangersFilter.reject_dangers(skipped_types())

@@ -5,7 +5,7 @@ defmodule ExcellentMigrations.CredoCheck.CheckSafety do
 
   alias ExcellentMigrations.{
     MessageGenerator,
-    DangersChecker,
+    DangersDetector,
     FilesFinder
   }
 
@@ -35,7 +35,7 @@ defmodule ExcellentMigrations.CredoCheck.CheckSafety do
     dangers =
       source_file
       |> SourceFile.ast()
-      |> DangersChecker.check_dangers()
+      |> DangersDetector.detect_dangers()
 
     Enum.map(dangers, fn {type, line} -> build_issue(type, line, issue_meta) end)
   end

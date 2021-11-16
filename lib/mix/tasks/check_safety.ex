@@ -11,6 +11,7 @@ defmodule Mix.Tasks.ExcellentMigrations.CheckSafety do
 
       {:dangerous, dangers} ->
         Enum.each(dangers, fn %{message: message} -> Logger.warn(message) end)
+        System.stop(1)
     end
   end
 end

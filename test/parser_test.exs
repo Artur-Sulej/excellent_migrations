@@ -147,8 +147,11 @@ defmodule ExcellentMigrations.ParserTest do
     ast1 = string_to_ast("remove(:size, :string)")
     assert [column_removed: 1] == Parser.parse(ast1)
 
-    ast2 = string_to_ast("remove(:size, :string, default: \"big\")")
+    ast2 = string_to_ast("remove :size, :string, default: \"big\"")
     assert [column_removed: 1] == Parser.parse(ast2)
+
+    ast3 = string_to_ast("remove_if_exists :size, :string")
+    assert [column_removed: 1] == Parser.parse(ast3)
   end
 
   test "detects table dropped" do

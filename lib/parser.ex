@@ -73,6 +73,10 @@ defmodule ExcellentMigrations.Parser do
     [{:column_removed, Keyword.get(location, :line)}]
   end
 
+  defp detect_column_removed({:remove_if_exists, location, _}) do
+    [{:column_removed, Keyword.get(location, :line)}]
+  end
+
   defp detect_column_removed(_), do: []
 
   defp detect_table_dropped({:drop, location, [{:table, _, _}]}) do

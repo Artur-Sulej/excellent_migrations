@@ -211,7 +211,6 @@ defmodule ExcellentMigrations.ParserTest do
   end
 
   defp string_to_ast(string) do
-    {:ok, ast} = Code.string_to_quoted(string)
-    ast
+    Code.string_to_quoted!(string)
   end
 end

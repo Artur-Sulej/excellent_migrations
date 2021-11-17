@@ -33,9 +33,9 @@ defmodule ExcellentMigrations.DangersDetector do
   containing danger types and lines where they were detected.
   ## Parameters
     * ast: structure that represents AST of database migration.
-      It can be obtained e.g. via `Code.string_to_quoted/1`.
+      It can be obtained e.g. via `Code.string_to_quoted!/1`.
   ## Examples
-      iex> {:ok, ast} = Code.string_to_quoted(\"""
+      iex> ast = Code.string_to_quoted!(\"""
       ...> alter table("dumplings") do
       ...>   remove(:taste, :string)
       ...>   remove(:stuffing, :string)

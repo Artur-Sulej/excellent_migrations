@@ -63,8 +63,7 @@ defmodule ExcellentMigrations.Runner do
   end
 
   defp get_ast(path) do
-    {:ok, ast} = Code.string_to_quoted(File.read!(path))
-    ast
+    Code.string_to_quoted!(File.read!(path))
   end
 
   defp build_result(dangers, path) do

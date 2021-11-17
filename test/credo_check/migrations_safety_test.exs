@@ -1,6 +1,6 @@
-defmodule ExcellentMigrations.CredoCheck.CheckSafetyTest do
+defmodule ExcellentMigrations.CredoCheck.MigrationsSafetyTest do
   use Credo.Test.Case
-  alias ExcellentMigrations.CredoCheck.CheckSafety
+  alias ExcellentMigrations.CredoCheck.MigrationsSafety
 
   test "it should NOT report expected code" do
     "test/example_migrations/20191026103003_create_table.exs"
@@ -18,6 +18,6 @@ defmodule ExcellentMigrations.CredoCheck.CheckSafetyTest do
     path
     |> File.read!()
     |> to_source_file(path)
-    |> run_check(CheckSafety)
+    |> run_check(MigrationsSafety)
   end
 end

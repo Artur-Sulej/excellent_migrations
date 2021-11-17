@@ -40,7 +40,7 @@ run `mix ecto.migrate`. If there are any, it will log errors and stop.
 ### Credo check
 
 Excellent Migrations provide custom check for [Credo](https://github.com/rrrene/credo).
-Add `ExcellentMigrations.CredoCheck.CheckSafety` to your `.credo` file. Example warnings:
+Add `ExcellentMigrations.CredoCheck.MigrationsSafety` to your `.credo` file. Example warnings:
 
 ```
   Warnings - please take a look                                                                                                                                             

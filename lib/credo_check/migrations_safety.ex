@@ -1,4 +1,4 @@
-defmodule ExcellentMigrations.CredoCheck.CheckSafety do
+defmodule ExcellentMigrations.CredoCheck.MigrationsSafety do
   @moduledoc """
   Custom Credo check to be used in `.credo.exs` file.
   """

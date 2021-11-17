@@ -1,3 +1,5 @@
+Application.ensure_all_started(:credo)
+
 defmodule ExcellentMigrations.CredoCheck.MigrationsSafetyTest do
   use Credo.Test.Case
   alias ExcellentMigrations.CredoCheck.MigrationsSafety

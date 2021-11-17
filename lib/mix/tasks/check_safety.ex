@@ -4,8 +4,16 @@ defmodule Mix.Tasks.ExcellentMigrations.CheckSafety do
   require Logger
 
   @shortdoc "Detects potentially dangerous operations in DB migrations"
-  def run(_args) do
-    case ExcellentMigrations.Runner.check_migrations() do
+  def run(args) do
+    {parsed, _args, _invalid} = OptionParser.parse(args, strict: [paths: :string])
+
+    params =
+      case Keyword.get(parsed, :paths) do
+        nil -> []
+        paths -> [migrations_paths: String.split(paths, ",")]
+      end
+
+    case ExcellentMigrations.Runner.check_migrations(params) do
       :safe ->
         Logger.info("No dangerous operations detected in migrations.")
 

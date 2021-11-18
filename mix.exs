@@ -13,7 +13,7 @@ defmodule ExcellentMigrations.MixProject do
       source_url: "https://github.com/artur-sulej/excellent_migrations",
       docs: [
         main: "readme",
-        extras: ["README.md"]
+        extras: ["README.md", "CHANGELOG.md"]
       ]
     ]
   end
@@ -23,7 +23,9 @@ defmodule ExcellentMigrations.MixProject do
       maintainers: ["Artur Sulej"],
       licenses: ["MIT"],
       links: %{
-        "GitHub" => "https://github.com/artur-sulej/excellent_migrations"
+        "GitHub" => "https://github.com/artur-sulej/excellent_migrations",
+        "Changelog" =>
+          "https://github.com/artur-sulej/excellent_migration/blob/master/CHANGELOG.md"
       }
     ]
   end

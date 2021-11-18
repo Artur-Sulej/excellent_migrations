@@ -7,7 +7,20 @@ defmodule ExcellentMigrations.MixProject do
       version: "0.1.0",
       elixir: ">= 1.7.0",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      description: "An analysis tool for checking safety of database migrations.",
+      package: package(),
+      source_url: "https://github.com/artur-sulej/excellent_migrations"
+    ]
+  end
+
+  defp package do
+    [
+      maintainers: ["Artur Sulej"],
+      licenses: ["MIT"],
+      links: %{
+        "GitHub" => "https://github.com/artur-sulej/excellent_migrations"
+      }
     ]
   end
 

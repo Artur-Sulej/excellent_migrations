@@ -106,13 +106,17 @@ defmodule ExcellentMigrations.ParserTest do
   end
 
   test "detects index added not concurrently" do
-    ast_not_conc = string_to_ast("create index(:dumplings, [:dough])")
-    ast__not_conc_with_opts = string_to_ast("create index(:dumplings, [:dough], unique: true)")
+    ast_single = string_to_ast("create index(:dumplings, :dough)")
+    ast_single_with_opts = string_to_ast("create index(:dumplings, :dough, unique: true)")
+    ast_multi = string_to_ast("create index(:dumplings, [:dough])")
+    ast_multi_with_opts = string_to_ast("create index(:dumplings, [:dough], unique: true)")
     ast_conc_false = string_to_ast("create index(:dumplings, [:dough], concurrently: false)")
     ast_conc_true = string_to_ast("create index(:dumplings, [:dough], concurrently: true)")
 
-    assert [index_not_concurrently: 1] == Parser.parse(ast_not_conc)
-    assert [index_not_concurrently: 1] == Parser.parse(ast__not_conc_with_opts)
+    assert [index_not_concurrently: 1] == Parser.parse(ast_single)
+    assert [index_not_concurrently: 1] == Parser.parse(ast_single_with_opts)
+    assert [index_not_concurrently: 1] == Parser.parse(ast_multi)
+    assert [index_not_concurrently: 1] == Parser.parse(ast_multi_with_opts)
     assert [index_not_concurrently: 1] == Parser.parse(ast_conc_false)
     assert [] == Parser.parse(ast_conc_true)
   end

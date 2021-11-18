@@ -59,7 +59,8 @@ defmodule ExcellentMigrations.Parser do
     end
   end
 
-  defp detect_many_columns_index({:create, location, [{:index, _, [_, columns]}]}) do
+  defp detect_many_columns_index({:create, location, [{:index, _, [_, columns]}]})
+       when is_list(columns) do
     if Enum.count(columns) > @max_columns_for_index do
       [{:many_columns_index, Keyword.get(location, :line)}]
     else

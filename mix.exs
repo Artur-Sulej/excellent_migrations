@@ -10,7 +10,11 @@ defmodule ExcellentMigrations.MixProject do
       deps: deps(),
       description: "An analysis tool for checking safety of database migrations.",
       package: package(),
-      source_url: "https://github.com/artur-sulej/excellent_migrations"
+      source_url: "https://github.com/artur-sulej/excellent_migrations",
+      docs: [
+        main: "readme",
+        extras: ["README.md"]
+      ]
     ]
   end
 
@@ -32,7 +36,8 @@ defmodule ExcellentMigrations.MixProject do
 
   defp deps do
     [
-      {:credo, "~> 1.5", optional: true}
+      {:credo, "~> 1.5", optional: true},
+      {:ex_doc, "~> 0.25", only: :dev, runtime: false}
     ]
   end
 end

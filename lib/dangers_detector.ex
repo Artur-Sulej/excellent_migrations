@@ -32,29 +32,30 @@ defmodule ExcellentMigrations.DangersDetector do
   Traverses `ast` and finds potentially dangerous database operations. Returns keyword list
   containing danger types and lines where they were detected.
   ## Parameters
-    * ast: structure that represents AST of database migration.
+    * `ast` is a structure that represents AST of database migration.
       It can be obtained e.g. via `Code.string_to_quoted!/1`.
   ## Examples
-      iex> ast = Code.string_to_quoted!(\"""
-      ...> alter table("dumplings") do
-      ...>   remove(:taste, :string)
-      ...>   remove(:stuffing, :string)
-      ...> end
-      ...> \""")
-      {:ok,
-      {:alter, [line: 1],
-      [
-        {:table, [line: 1], ["dumplings"]},
-        [
-          do: {:__block__, [],
-           [
-             {:remove, [line: 2], [:taste, :string]},
-             {:remove, [line: 3], [:stuffing, :string]}
-           ]}
-        ]
-      ]}}
-      iex> ExcellentMigrations.DangersDetector.detect_dangers(ast)
-      [column_removed: 2, column_removed: 3]
+          iex> ast = Code.string_to_quoted!(\"""
+          ...>   alter table("dumplings") do
+          ...>     remove(:taste, :string)
+          ...>     remove(:stuffing, :string)
+          ...>   end
+          ...> \""")
+          {:ok,
+          {:alter, [line: 1],
+          [
+            {:table, [line: 1], ["dumplings"]},
+            [
+              do: {:__block__, [],
+               [
+                 {:remove, [line: 2], [:taste, :string]},
+                 {:remove, [line: 3], [:stuffing, :string]}
+               ]}
+            ]
+          ]}}
+
+          iex> ExcellentMigrations.DangersDetector.detect_dangers(ast)
+          [column_removed: 2, column_removed: 3]
   """
   @spec detect_dangers(ast) :: [{danger_type, line}]
   def detect_dangers(ast) do

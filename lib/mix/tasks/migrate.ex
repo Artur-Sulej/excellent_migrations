@@ -16,7 +16,7 @@ defmodule Mix.Tasks.ExcellentMigrations.Migrate do
           |> Logger.error()
         end)
 
-        System.halt(1)
+        System.stop(1)
     end
   end
 end

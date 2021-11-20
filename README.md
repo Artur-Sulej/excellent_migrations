@@ -1,4 +1,4 @@
-# Excellent Migrations
+# Excellent Migrations [![CI Tests](https://github.com/artur-sulej/excellent_migrations/workflows/Tests/badge.svg)](https://github.com/artur-sulej/excellent_migrations/actions?query=branch%3Amaster)
 
 Detect potentially dangerous or destructive operations in your database migrations.
 
@@ -14,6 +14,10 @@ def deps do
   ]
 end
 ```
+
+## Documentation
+
+Documentation is available on [Hexdocs](https://hexdocs.pm/excellent_migrations/).
 
 ## How It Works
 

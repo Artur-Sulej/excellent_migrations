@@ -10,7 +10,7 @@ in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:excellent_migrations, "~> 0.1.0"}
+    {:excellent_migrations, "~> 0.1"}
   ]
 end
 ```
@@ -18,7 +18,7 @@ end
 ## How It Works
 
 This tool analyzes code (AST) of migration files. You don't have to edit or include anything in your
-migration files, except for ocassionally adding module attribute `@safety_assured`.
+migration files, except for occasionally adding module attribute `@safety_assured`.
 
 ## How to use it
 
@@ -300,7 +300,7 @@ Possible operation types are:
 
 ## Disable checks
 
-Ignore specific dangers for all migraion checks with:
+Ignore specific dangers for all migration checks with:
 
 ```elixir
 config :excellent_migrations, skip_checks: [:raw_sql_executed, :not_null_added]

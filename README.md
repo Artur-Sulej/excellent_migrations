@@ -10,7 +10,7 @@ in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:excellent_migrations, "~> 0.1"}
+    {:excellent_migrations, "~> 0.1", only: [:dev, :test], runtime: false}
   ]
 end
 ```

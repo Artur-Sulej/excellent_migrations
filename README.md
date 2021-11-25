@@ -289,17 +289,21 @@ end
 
 Possible operation types are:
 
+* `:check_constraint_added`
 * `:column_added_with_default`
+* `:column_reference_added`
 * `:column_removed`
 * `:column_renamed`
 * `:column_type_changed`
 * `:index_not_concurrently`
+* `:json_column_added`
 * `:many_columns_index`
 * `:not_null_added`
 * `:operation_delete`
 * `:operation_insert`
 * `:operation_update`
 * `:raw_sql_executed`
+* `:table_dropped`
 * `:table_renamed`
 
 ## Disable checks

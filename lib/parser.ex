@@ -131,7 +131,7 @@ defmodule ExcellentMigrations.Parser do
   def detect_column_modified(_), do: []
 
   def detect_not_null_added({:modify, location, [_, _, options]}) do
-    if Keyword.get(options, :null) do
+    if Keyword.get(options, :null) == false do
       [{:not_null_added, Keyword.get(location, :line)}]
     else
       []
@@ -140,7 +140,7 @@ defmodule ExcellentMigrations.Parser do
 
   def detect_not_null_added(_), do: []
 
-  def detect_json_column_added({:add, location, [_, :json, _]}) do
+  def detect_json_column_added({:add, location, [_, :json | _]}) do
     [{:json_column_added, Keyword.get(location, :line)}]
   end
 

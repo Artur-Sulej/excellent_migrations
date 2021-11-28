@@ -22,7 +22,7 @@ defmodule ExcellentMigrations.ParserTest do
   end
 
   test "detects not null constraint added to column" do
-    ast = string_to_ast("modify :location_id, :integer, null: true")
+    ast = string_to_ast("modify :location_id, :integer, null: false")
     assert [column_type_changed: 1, not_null_added: 1] == Parser.parse(ast)
   end
 

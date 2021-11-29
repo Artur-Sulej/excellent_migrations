@@ -1,6 +1,6 @@
-defmodule ExcellentMigrations.ParserTest do
+defmodule ExcellentMigrations.AstParserTest do
   use ExUnit.Case
-  alias ExcellentMigrations.Parser
+  alias ExcellentMigrations.AstParser
 
   test "detects table renamed" do
     ast =
@@ -8,29 +8,29 @@ defmodule ExcellentMigrations.ParserTest do
       rename table("dumplings"), to: table("noodles")
       """)
 
-    assert [table_renamed: 1] == Parser.parse(ast)
+    assert [table_renamed: 1] == AstParser.parse(ast)
   end
 
   test "detects column renamed" do
     ast = string_to_ast("rename table(:dumplings), :filling, to: :stuffing")
-    assert [column_renamed: 1] == Parser.parse(ast)
+    assert [column_renamed: 1] == AstParser.parse(ast)
   end
 
   test "detects column type changed" do
     ast = string_to_ast("modify(:size, :integer, from: :string)")
-    assert [column_type_changed: 1] == Parser.parse(ast)
+    assert [column_type_changed: 1] == AstParser.parse(ast)
   end
 
   test "detects not null constraint added to column" do
     ast = string_to_ast("modify :location_id, :integer, null: false")
-    assert [column_type_changed: 1, not_null_added: 1] == Parser.parse(ast)
+    assert [column_type_changed: 1, not_null_added: 1] == AstParser.parse(ast)
   end
 
   test "detects json column added" do
     ast1 = string_to_ast(~s(add :details, :json, null: false, default: "{}"))
     ast2 = string_to_ast(~s(add :details, :jsonb, null: false, default: "{}"))
-    assert [json_column_added: 1] == Parser.parse(ast1)
-    assert [] == Parser.parse(ast2)
+    assert [json_column_added: 1] == AstParser.parse(ast1)
+    assert [] == AstParser.parse(ast2)
   end
 
   test "detects reference added" do
@@ -44,8 +44,8 @@ defmodule ExcellentMigrations.ParserTest do
       end
       """)
 
-    assert [column_reference_added: 1] == Parser.parse(ast1)
-    assert [column_reference_added: 2] == Parser.parse(ast2)
+    assert [column_reference_added: 1] == AstParser.parse(ast1)
+    assert [column_reference_added: 2] == AstParser.parse(ast2)
   end
 
   test "detects check constraint added" do
@@ -54,7 +54,7 @@ defmodule ExcellentMigrations.ParserTest do
       create constraint("dumplings", :price_must_be_positive, check: "price > 0")
       """)
 
-    assert [check_constraint_added: 1] == Parser.parse(ast)
+    assert [check_constraint_added: 1] == AstParser.parse(ast)
   end
 
   test "detects records modified" do
@@ -86,23 +86,23 @@ defmodule ExcellentMigrations.ParserTest do
         |> Repo.update!()
       """)
 
-    assert [operation_insert: 3] == Parser.parse(ast1)
-    assert [operation_insert: 1] == Parser.parse(ast2)
-    assert [operation_update: 1] == Parser.parse(ast3)
-    assert [operation_delete: 1] == Parser.parse(ast4)
-    assert [operation_update: 5] == Parser.parse(ast5)
+    assert [operation_insert: 3] == AstParser.parse(ast1)
+    assert [operation_insert: 1] == AstParser.parse(ast2)
+    assert [operation_update: 1] == AstParser.parse(ast3)
+    assert [operation_delete: 1] == AstParser.parse(ast4)
+    assert [operation_update: 5] == AstParser.parse(ast5)
   end
 
   test "detects danger and safety assured" do
     assert [safety_assured: [:index_not_concurrently], index_not_concurrently: 7] ==
-             Parser.parse(safety_assured_ast())
+             AstParser.parse(safety_assured_ast())
   end
 
   test "detects raw SQL executed" do
     ast1 = raw_sql_executed_ast()
     ast2 = string_to_ast(~s(execute "SQL up", "SQL down"))
-    assert [raw_sql_executed: 2, raw_sql_executed: 6] == Parser.parse(ast1)
-    assert [raw_sql_executed: 1] == Parser.parse(ast2)
+    assert [raw_sql_executed: 2, raw_sql_executed: 6] == AstParser.parse(ast1)
+    assert [raw_sql_executed: 1] == AstParser.parse(ast2)
   end
 
   test "detects index added not concurrently" do
@@ -113,12 +113,12 @@ defmodule ExcellentMigrations.ParserTest do
     ast_conc_false = string_to_ast("create index(:dumplings, [:dough], concurrently: false)")
     ast_conc_true = string_to_ast("create index(:dumplings, [:dough], concurrently: true)")
 
-    assert [index_not_concurrently: 1] == Parser.parse(ast_single)
-    assert [index_not_concurrently: 1] == Parser.parse(ast_single_with_opts)
-    assert [index_not_concurrently: 1] == Parser.parse(ast_multi)
-    assert [index_not_concurrently: 1] == Parser.parse(ast_multi_with_opts)
-    assert [index_not_concurrently: 1] == Parser.parse(ast_conc_false)
-    assert [] == Parser.parse(ast_conc_true)
+    assert [index_not_concurrently: 1] == AstParser.parse(ast_single)
+    assert [index_not_concurrently: 1] == AstParser.parse(ast_single_with_opts)
+    assert [index_not_concurrently: 1] == AstParser.parse(ast_multi)
+    assert [index_not_concurrently: 1] == AstParser.parse(ast_multi_with_opts)
+    assert [index_not_concurrently: 1] == AstParser.parse(ast_conc_false)
+    assert [] == AstParser.parse(ast_conc_true)
   end
 
   test "detects index with too many columns" do
@@ -136,29 +136,29 @@ defmodule ExcellentMigrations.ParserTest do
     ast_ok = string_to_ast("create index(\"ingredients\", [:a, :b, :c], concurrently: true)")
 
     assert [index_not_concurrently: 1, many_columns_index: 1] ==
-             Parser.parse(ast_too_many_not_concurrently)
+             AstParser.parse(ast_too_many_not_concurrently)
 
-    assert [many_columns_index: 1] == Parser.parse(ast_many_columns)
-    assert [] == Parser.parse(ast_many_but_unique)
-    assert [] == Parser.parse(ast_ok)
+    assert [many_columns_index: 1] == AstParser.parse(ast_many_columns)
+    assert [] == AstParser.parse(ast_many_but_unique)
+    assert [] == AstParser.parse(ast_ok)
   end
 
   test "detects column added with default" do
     assert [column_added_with_default: 2] ==
-             Parser.parse(add_column_with_default_in_existing_table_ast())
+             AstParser.parse(add_column_with_default_in_existing_table_ast())
 
-    assert [] == Parser.parse(add_column_with_default_in_new_table_ast())
+    assert [] == AstParser.parse(add_column_with_default_in_new_table_ast())
   end
 
   test "detects column removed" do
     ast1 = string_to_ast("remove(:size, :string)")
-    assert [column_removed: 1] == Parser.parse(ast1)
+    assert [column_removed: 1] == AstParser.parse(ast1)
 
     ast2 = string_to_ast("remove :size, :string, default: \"big\"")
-    assert [column_removed: 1] == Parser.parse(ast2)
+    assert [column_removed: 1] == AstParser.parse(ast2)
 
     ast3 = string_to_ast("remove_if_exists :size, :string")
-    assert [column_removed: 1] == Parser.parse(ast3)
+    assert [column_removed: 1] == AstParser.parse(ast3)
   end
 
   test "detects table dropped" do
@@ -167,10 +167,10 @@ defmodule ExcellentMigrations.ParserTest do
     ast3 = string_to_ast("drop table(:recipes), mode: :cascade")
     ast4 = string_to_ast("drop table(:recipes)")
 
-    assert [table_dropped: 1] == Parser.parse(ast1)
-    assert [table_dropped: 1] == Parser.parse(ast2)
-    assert [table_dropped: 1] == Parser.parse(ast3)
-    assert [table_dropped: 1] == Parser.parse(ast4)
+    assert [table_dropped: 1] == AstParser.parse(ast1)
+    assert [table_dropped: 1] == AstParser.parse(ast2)
+    assert [table_dropped: 1] == AstParser.parse(ast3)
+    assert [table_dropped: 1] == AstParser.parse(ast4)
   end
 
   defp add_column_with_default_in_existing_table_ast do

@@ -1,4 +1,4 @@
-defmodule ExcellentMigrations.Parser do
+defmodule ExcellentMigrations.AstParser do
   @moduledoc false
   @max_columns_for_index 3
 

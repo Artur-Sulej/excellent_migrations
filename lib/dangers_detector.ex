@@ -6,7 +6,7 @@ defmodule ExcellentMigrations.DangersDetector do
 
   alias ExcellentMigrations.{
     DangersFilter,
-    Parser
+    AstParser
   }
 
   @type ast :: list | tuple | atom | String.t()
@@ -60,7 +60,7 @@ defmodule ExcellentMigrations.DangersDetector do
   @spec detect_dangers(ast) :: [{danger_type, line}]
   def detect_dangers(ast) do
     ast
-    |> Parser.parse()
+    |> AstParser.parse()
     |> DangersFilter.reject_dangers(skipped_types())
   end
 

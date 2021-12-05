@@ -1,11 +1,18 @@
-# Excellent Migrations [![CI Tests](https://github.com/artur-sulej/excellent_migrations/workflows/Tests/badge.svg)](https://github.com/artur-sulej/excellent_migrations/actions?query=branch%3Amaster)
+# Excellent Migrations
+
+[![CI Tests](https://github.com/artur-sulej/excellent_migrations/workflows/Tests/badge.svg)](https://github.com/artur-sulej/excellent_migrations/actions?query=branch%3Amaster)
+[![Module Version](https://img.shields.io/hexpm/v/excellent_migrations.svg)](https://hex.pm/packages/excellent_migrations)
+[![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/excellent_migrations/)
+[![Total Download](https://img.shields.io/hexpm/dt/excellent_migrations.svg)](https://hex.pm/packages/excellent_migrations)
+[![License](https://img.shields.io/hexpm/l/excellent_migrations.svg)](https://github.com/artur-sulej/excellent_migrations/blob/master/LICENSE.md)
+[![Last Updated](https://img.shields.io/github/last-commit/artur-sulej/excellent_migrations.svg)](https://github.com/artur-sulej/excellent_migrations/commits/master)
+
 
 Detect potentially dangerous or destructive operations in your database migrations.
 
 ## Installation
 
-The package can be installed by adding `excellent_migrations` to your list of dependencies
-in `mix.exs`:
+The package can be installed by adding `:excellent_migrations` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
@@ -47,8 +54,8 @@ Excellent Migrations provide custom check for [Credo](https://github.com/rrrene/
 Add `ExcellentMigrations.CredoCheck.MigrationsSafety` to your `.credo` file. Example warnings:
 
 ```
-  Warnings - please take a look                                                                                                                                             
-┃ 
+  Warnings - please take a look
+┃
 ┃ [W] ↗ Raw SQL used
 ┃       apps/cookbook/priv/repo/migrations/20211024133700_create_recipes.exs:13 #(Cookbook.Repo.Migrations.CreateRecipes.up)
 ┃ [W] ↗ Index added not concurrently
@@ -337,3 +344,10 @@ Everyone is encouraged to help improve this project. Here are a few ways you can
   features, [submit pull requests](https://github.com/Artur-Sulej/excellent_migrations/pulls)
 - [Report bugs](https://github.com/Artur-Sulej/excellent_migrations/issues)
 - Improve documentation
+
+## Copyright and License
+
+Copyright (c) 2021 Artur Sulej
+
+This work is free. You can redistribute it and/or modify it under the
+terms of the MIT License. See the [LICENSE.md](./LICENSE.md) file for more details.

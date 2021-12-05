@@ -1,31 +1,30 @@
 defmodule ExcellentMigrations.MixProject do
   use Mix.Project
 
+  @source_url "https://github.com/artur-sulej/excellent_migrations"
+  @version "0.1.2"
+
   def project do
     [
       app: :excellent_migrations,
-      version: "0.1.2",
+      version: @version,
       elixir: ">= 1.7.0",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      description: "An analysis tool for checking safety of database migrations.",
+      docs: docs(),
       package: package(),
-      source_url: "https://github.com/artur-sulej/excellent_migrations",
-      docs: [
-        main: "readme",
-        extras: ["README.md", "CHANGELOG.md"]
-      ]
+      preferred_cli_env: [docs: :docs]
     ]
   end
 
   defp package do
     [
+      description: "An analysis tool for checking safety of database migrations.",
       maintainers: ["Artur Sulej"],
       licenses: ["MIT"],
       links: %{
-        "GitHub" => "https://github.com/artur-sulej/excellent_migrations",
-        "Changelog" =>
-          "https://github.com/artur-sulej/excellent_migration/blob/master/CHANGELOG.md"
+        "Changelog" => "https://hexdocs.pm/excellent_migrations/changelog.html",
+        "GitHub" => @source_url
       }
     ]
   end
@@ -39,7 +38,21 @@ defmodule ExcellentMigrations.MixProject do
   defp deps do
     [
       {:credo, "~> 1.5", optional: true},
-      {:ex_doc, "~> 0.25", only: :dev, runtime: false}
+      {:ex_doc, ">= 0.0.0", only: :docs, runtime: false}
+    ]
+  end
+
+  defp docs do
+    [
+      extras: [
+        "CHANGELOG.md": [],
+        "LICENSE.md": [title: "License"],
+        "README.md": [title: "Overview"]
+      ],
+      main: "readme",
+      source_url: @source_url,
+      source_ref: "v#{@version}",
+      formatters: ["html"]
     ]
   end
 end

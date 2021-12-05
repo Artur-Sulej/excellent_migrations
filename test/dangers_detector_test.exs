@@ -21,4 +21,15 @@ defmodule ExcellentMigrations.DangersDetectorTest do
 
     assert [] == DangersDetector.detect_dangers(ast)
   end
+
+  test "skips dangers with safety assured config comments" do
+    ast =
+      Code.string_to_quoted!(
+        File.read!(
+          "test/example_migrations/20191026103009_safety_assured_with_config_comments.exs"
+        )
+      )
+
+    assert  [{:raw_sql_executed, 8}] == DangersDetector.detect_dangers(ast)
+  end
 end

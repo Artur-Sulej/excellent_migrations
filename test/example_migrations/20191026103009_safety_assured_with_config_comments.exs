@@ -1,6 +1,6 @@
 defmodule ExcellentMigrations.AddSomethingToVegetables do
   def up do
-    # safety_assured:raw_sql_executed
+    # excellent_migrations:safety-assured-for-this-file raw_sql_executed
     execute("ALTER TABLE vegetables ADD COLUMN something integer;")
   end
 

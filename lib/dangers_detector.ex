@@ -5,8 +5,9 @@ defmodule ExcellentMigrations.DangersDetector do
   """
 
   alias ExcellentMigrations.{
-    DangersFilter,
-    AstParser
+    AstParser,
+    ConfigCommentsParser,
+    DangersFilter
   }
 
   @type ast :: list | tuple | atom | String.t()
@@ -57,14 +58,11 @@ defmodule ExcellentMigrations.DangersDetector do
           iex> ExcellentMigrations.DangersDetector.detect_dangers(ast)
           [column_removed: 2, column_removed: 3]
   """
-  @spec detect_dangers(ast) :: [{danger_type, line}]
-  def detect_dangers(ast) do
-    ast
-    |> AstParser.parse()
-    |> DangersFilter.reject_dangers(skipped_types())
-  end
-
-  defp skipped_types do
-    Application.get_env(:excellent_migrations, :skip_checks, [])
+  @spec detect_dangers(ast, String.t()) :: [{danger_type, line}]
+  def detect_dangers(ast, source_code) do
+    parsed_dangers = AstParser.parse(ast)
+    parsed_safety_assured = ConfigCommentsParser.parse(source_code)
+    skipped_types = Application.get_env(:excellent_migrations, :skip_checks, [])
+    DangersFilter.reject_dangers(parsed_dangers, parsed_safety_assured, skipped_types)
   end
 end

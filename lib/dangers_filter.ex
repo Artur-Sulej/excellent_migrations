@@ -22,10 +22,31 @@ defmodule ExcellentMigrations.DangersFilter do
     end
   end
 
-  defp reject_by_safety_assured_comments(dangers, safe_types) do
-    Enum.reduce(safe_types, dangers, fn
+  defp reject_by_safety_assured_comments(dangers, safety_assured) do
+    safety_assured = advance_config_comments_to_skip_others(safety_assured)
+
+    Enum.reduce(safety_assured, dangers, fn
       {safe_type, :all}, dangers_acc -> Keyword.delete(dangers_acc, safe_type)
       {safe_type, line}, dangers_acc -> Keyword.delete(dangers_acc, safe_type, line + 1)
+    end)
+  end
+
+  defp advance_config_comments_to_skip_others(safety_assured) do
+    safety_assured
+    |> Enum.sort_by(&elem(&1, 1))
+    |> Enum.reduce([], fn
+      {safe_type, line} = current, [{_prev_safe_type, prev_line} | tail] = acc
+      when line - 1 == prev_line ->
+        new_acc =
+          Enum.map(acc, fn
+            {safe_typex, linex} when line - 1 == linex -> {safe_typex, line}
+            item -> item
+          end)
+
+        [current | new_acc]
+
+      current, acc ->
+        [current | acc]
     end)
   end
 

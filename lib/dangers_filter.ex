@@ -1,11 +1,11 @@
 defmodule ExcellentMigrations.DangersFilter do
   @moduledoc false
 
-  def reject_dangers(dangers, safety_assured, ignored_types) do
+  def filter_dangers(dangers, safety_assured, skipped_types) do
     dangers
     |> reject_by_safety_assured_attributes()
     |> delete_safety_assured_attributes()
-    |> reject_types(ignored_types)
+    |> reject_types(skipped_types)
     |> reject_by_safety_assured_comments(safety_assured)
   end
 
@@ -31,18 +31,13 @@ defmodule ExcellentMigrations.DangersFilter do
     end)
   end
 
-  defp advance_config_comments_to_skip_others(safety_assured) do
-    safety_assured
+  defp advance_config_comments_to_skip_others(safety_assured_types) do
+    safety_assured_types
     |> Enum.sort_by(&elem(&1, 1))
     |> Enum.reduce([], fn
-      {safe_type, line} = current, [{_prev_safe_type, prev_line} | tail] = acc
+      {safe_type, line} = current, [{_, prev_line} | tail] = acc
       when line - 1 == prev_line ->
-        new_acc =
-          Enum.map(acc, fn
-            {safe_typex, linex} when line - 1 == linex -> {safe_typex, line}
-            item -> item
-          end)
-
+        new_acc = increment_lines(acc, prev_line)
         [current | new_acc]
 
       current, acc ->
@@ -50,8 +45,15 @@ defmodule ExcellentMigrations.DangersFilter do
     end)
   end
 
-  defp reject_types(dangers, ignored_types) do
-    Enum.reduce(ignored_types, dangers, fn skipped_type, dangers_acc ->
+  defp increment_lines(types, line) do
+    Enum.map(types, fn
+      {type, ^line} -> {type, line + 1}
+      item -> item
+    end)
+  end
+
+  defp reject_types(dangers, skipped_types) do
+    Enum.reduce(skipped_types, dangers, fn skipped_type, dangers_acc ->
       Keyword.delete(dangers_acc, skipped_type)
     end)
   end

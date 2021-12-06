@@ -63,6 +63,6 @@ defmodule ExcellentMigrations.DangersDetector do
     parsed_dangers = AstParser.parse(ast)
     parsed_safety_assured = ConfigCommentsParser.parse(source_code)
     skipped_types = Application.get_env(:excellent_migrations, :skip_checks, [])
-    DangersFilter.reject_dangers(parsed_dangers, parsed_safety_assured, skipped_types)
+    DangersFilter.filter_dangers(parsed_dangers, parsed_safety_assured, skipped_types)
   end
 end

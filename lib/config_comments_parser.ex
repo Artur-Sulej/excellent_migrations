@@ -7,33 +7,33 @@ defmodule ExcellentMigrations.ConfigCommentsParser do
     stream
     |> IO.binstream(:line)
     |> Stream.with_index(1)
-    |> Stream.filter(fn {line, _line_number} ->
-      Regex.match?(~r/\s*#\s*excellent_migrations.*/, line)
+    |> Stream.filter(fn {content, _line} ->
+      Regex.match?(~r/\s*#\s*excellent_migrations.*/, content)
     end)
-    |> Stream.map(fn {line, line_number} ->
-      line = String.replace(line, ~r/\s*#\s*excellent_migrations\s*:\s*/, "")
-      {line, line_number}
+    |> Stream.map(fn {content, line} ->
+      content = String.replace(content, ~r/\s*#\s*excellent_migrations\s*:\s*/, "")
+      {content, line}
     end)
-    |> Stream.flat_map(&get_config/1)
+    |> Stream.flat_map(&get_safety_assured/1)
     |> Enum.to_list()
   end
 
-  defp get_config({"safety-assured-for-this-file" <> types, _line_number}) do
-    map_types(types, :all)
+  defp get_safety_assured({"safety-assured-for-this-file" <> types, _line}) do
+    build_safe_types(types, :all)
   end
 
-  defp get_config({"safety-assured-for-next-line" <> types, line_number}) do
-    map_types(types, line_number)
+  defp get_safety_assured({"safety-assured-for-next-line" <> types, line}) do
+    build_safe_types(types, line)
   end
 
-  defp map_types(types, line_number) do
+  defp build_safe_types(types, line) do
     types
     |> String.trim()
     |> String.split(" ")
-    |> Enum.map(&{build_type(&1), line_number})
+    |> Enum.map(&{atomize(&1), line})
   end
 
-  defp build_type(string) do
+  defp atomize(string) do
     string
     |> String.trim()
     |> String.to_atom()

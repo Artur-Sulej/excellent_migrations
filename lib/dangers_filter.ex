@@ -1,5 +1,6 @@
 defmodule ExcellentMigrations.DangersFilter do
   @moduledoc false
+  require Logger
 
   def filter_dangers(dangers, safety_assured, skipped_types) do
     dangers
@@ -15,6 +16,12 @@ defmodule ExcellentMigrations.DangersFilter do
       |> Keyword.get_values(:safety_assured)
       |> Enum.flat_map(fn types -> List.wrap(types) end)
       |> Enum.uniq()
+
+    unless Enum.empty?(safety_assured_types) do
+      Logger.warn(
+        "Using module attribute @safety_assured is deprecated. Use config comments instead."
+      )
+    end
 
     case safety_assured_types do
       [:all] -> []

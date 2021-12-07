@@ -30,12 +30,13 @@ defmodule ExcellentMigrations.ConfigCommentsParser do
     types
     |> String.trim()
     |> String.split(" ")
-    |> Enum.map(&{atomize(&1), line})
+    |> Enum.map(&{prepare_type(&1), line})
   end
 
-  defp atomize(string) do
+  defp prepare_type(string) do
     string
     |> String.trim()
+    |> String.replace("-", "_")
     |> String.to_atom()
   end
 end

@@ -15,4 +15,11 @@ defmodule ExcellentMigrations.ConfigCommentsParserTest do
 
     assert [raw_sql_executed: 1, column_renamed: 1] == ConfigCommentsParser.parse(source_code)
   end
+
+  test "works for kebab case" do
+    source_code =
+      "    # excellent_migrations:safety-assured-for-next-line raw-sql-executed column_renamed"
+
+    assert [raw_sql_executed: 1, column_renamed: 1] == ConfigCommentsParser.parse(source_code)
+  end
 end

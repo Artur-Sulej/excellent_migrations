@@ -64,10 +64,11 @@ Add `ExcellentMigrations.CredoCheck.MigrationsSafety` to your `.credo` file. Exa
 
 ### Code
 
-You can also use it in code. To do so, you need to get AST of your migration, e.g.
-via [`Code.string_to_quoted/2`](https://hexdocs.pm/elixir/1.12/Code.html#string_to_quoted/2) and
-pass it to `ExcellentMigrations.DangersDetector.detect_dangers(ast)`. It will return keyword list
-containing danger types and lines where they were detected.
+You can also use it in code. To do so, you need to get source code and AST of your migration file,
+e.g. via `File.read!/1`
+and [`Code.string_to_quoted/2`](https://hexdocs.pm/elixir/1.12/Code.html#string_to_quoted/2). Then
+pass them to `ExcellentMigrations.DangersDetector.detect_dangers(ast)`. It will return a keyword
+list containing danger types and lines where they were detected.
 
 ## Checks
 

@@ -32,12 +32,9 @@ if Code.ensure_loaded?(Credo.Check) do
 
     defp detect_dangers(source_file, params) do
       issue_meta = IssueMeta.for(source_file, params)
-
-      dangers =
-        source_file
-        |> SourceFile.ast()
-        |> DangersDetector.detect_dangers()
-
+      ast = SourceFile.ast(source_file)
+      source_code = SourceFile.source(source_file)
+      dangers = DangersDetector.detect_dangers(ast, source_code)
       Enum.map(dangers, fn {type, line} -> build_issue(type, line, issue_meta) end)
     end
 

@@ -35,7 +35,7 @@ defmodule ExcellentMigrations.DangersFilter do
     safety_assured_types
     |> Enum.sort_by(&elem(&1, 1))
     |> Enum.reduce([], fn
-      {safe_type, line} = current, [{_, prev_line} | tail] = acc
+      {_, line} = current, [{_, prev_line} | _] = acc
       when line - 1 == prev_line ->
         new_acc = increment_lines(acc, prev_line)
         [current | new_acc]

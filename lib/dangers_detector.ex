@@ -36,12 +36,13 @@ defmodule ExcellentMigrations.DangersDetector do
     * `ast` is a structure that represents AST of database migration.
       It can be obtained e.g. via `Code.string_to_quoted!/1`.
   ## Examples
-          iex> ast = Code.string_to_quoted!(\"""
+          iex> source_code = \"""
           ...>   alter table("dumplings") do
           ...>     remove(:taste, :string)
           ...>     remove(:stuffing, :string)
           ...>   end
-          ...> \""")
+          ...> \"""
+          iex> ast = Code.string_to_quoted!(source_code)
           {:ok,
           {:alter, [line: 1],
           [
@@ -55,7 +56,7 @@ defmodule ExcellentMigrations.DangersDetector do
             ]
           ]}}
 
-          iex> ExcellentMigrations.DangersDetector.detect_dangers(ast)
+          iex> ExcellentMigrations.DangersDetector.detect_dangers(ast, source_code)
           [column_removed: 2, column_removed: 3]
   """
   @spec detect_dangers(ast, String.t()) :: [{danger_type, line}]

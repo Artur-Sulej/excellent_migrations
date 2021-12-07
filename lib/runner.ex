@@ -46,10 +46,10 @@ defmodule ExcellentMigrations.Runner do
     opts
     |> get_migrations_paths()
     |> Task.async_stream(fn path ->
-      path
-      |> get_ast()
-      |> DangersDetector.detect_dangers()
-      |> build_result(path)
+      source_code = File.read!(path)
+      ast = Code.string_to_quoted!(source_code)
+      dangers = DangersDetector.detect_dangers(ast, source_code)
+      build_result(dangers, path)
     end)
     |> Stream.flat_map(fn {:ok, items} -> items end)
     |> Enum.to_list()
@@ -60,10 +60,6 @@ defmodule ExcellentMigrations.Runner do
     opts
     |> Keyword.get_lazy(:migrations_paths, &FilesFinder.get_migrations_paths/0)
     |> Enum.sort()
-  end
-
-  defp get_ast(path) do
-    Code.string_to_quoted!(File.read!(path))
   end
 
   defp build_result(dangers, path) do

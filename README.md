@@ -7,12 +7,12 @@
 [![License](https://img.shields.io/hexpm/l/excellent_migrations.svg)](https://github.com/artur-sulej/excellent_migrations/blob/master/LICENSE.md)
 [![Last Updated](https://img.shields.io/github/last-commit/artur-sulej/excellent_migrations.svg)](https://github.com/artur-sulej/excellent_migrations/commits/master)
 
-
 Detect potentially dangerous or destructive operations in your database migrations.
 
 ## Installation
 
-The package can be installed by adding `:excellent_migrations` to your list of dependencies in `mix.exs`:
+The package can be installed by adding `:excellent_migrations` to your list of dependencies
+in `mix.exs`:
 
 ```elixir
 def deps do
@@ -266,53 +266,54 @@ end
 
 ## Assuring safety
 
-To mark an operation in a migration as safe list it in `@safety_assured` attribute. It will be
-ignored during analysis.
+To mark an operation in a migration as safe use config comment. It will be ignored during analysis.
+
+There are two config comments available:
+
+* `excellent_migrations:safety-assured-for-next-line <operation_type>`
+* `excellent_migrations:safety-assured-for-this-file <operation_type>`
 
 ```elixir
 defmodule Cookbook.AddTasteToDumplingsWithDefault do
-  @safety_assured [:column_added_with_default]
+  def change do
+    alter table(:dumplings) do
+      # excellent_migrations:safety-assured-for-next-line column_added_with_default
+      add(:taste, :string, default: "sweet")
+    end
+  end
+end
+```
+
+```elixir
+defmodule Cookbook.AddTasteToDumplingsWithDefault do
+  # excellent_migrations:safety-assured-for-this-file column_added_with_default
 
   def change do
     alter table(:dumplings) do
       add(:taste, :string, default: "sweet")
     end
-
-    create index(:dumplings, [:recipe_id, :flour_id])
-  end
-end
-```
-
-You can also mark all operations as safe in a given migration by adding `@safety_assured :all`
-
-```elixir
-defmodule Cookbook.BackfillRecords do
-  @safety_assured :all
-
-  def change do
-    Repo.insert!(%Dumpling{taste: "umami"})
   end
 end
 ```
 
 Possible operation types are:
 
-* `:check_constraint_added`
-* `:column_added_with_default`
-* `:column_reference_added`
-* `:column_removed`
-* `:column_renamed`
-* `:column_type_changed`
-* `:index_not_concurrently`
-* `:json_column_added`
-* `:many_columns_index`
-* `:not_null_added`
-* `:operation_delete`
-* `:operation_insert`
-* `:operation_update`
-* `:raw_sql_executed`
-* `:table_dropped`
-* `:table_renamed`
+* `check_constraint_added`
+* `column_added_with_default`
+* `column_reference_added`
+* `column_removed`
+* `column_renamed`
+* `column_type_changed`
+* `index_not_concurrently`
+* `json_column_added`
+* `many_columns_index`
+* `not_null_added`
+* `operation_delete`
+* `operation_insert`
+* `operation_update`
+* `raw_sql_executed`
+* `table_dropped`
+* `table_renamed`
 
 ## Disable checks
 
@@ -350,5 +351,5 @@ Everyone is encouraged to help improve this project. Here are a few ways you can
 
 Copyright (c) 2021 Artur Sulej
 
-This work is free. You can redistribute it and/or modify it under the
-terms of the MIT License. See the [LICENSE.md](./LICENSE.md) file for more details.
+This work is free. You can redistribute it and/or modify it under the terms of the MIT License. See
+the [LICENSE.md](./LICENSE.md) file for more details.

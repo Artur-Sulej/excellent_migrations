@@ -26,8 +26,16 @@ defmodule ExcellentMigrations.DangersFilter do
     safety_assured = advance_config_comments_to_skip_others(safety_assured)
 
     Enum.reduce(safety_assured, dangers, fn
-      {safe_type, :all}, dangers_acc -> Keyword.delete(dangers_acc, safe_type)
-      {safe_type, line}, dangers_acc -> Keyword.delete(dangers_acc, safe_type, line + 1)
+      {safe_type, :all}, dangers_acc ->
+        Keyword.delete(dangers_acc, safe_type)
+
+      {safe_type, comment_line}, dangers_acc ->
+        target_line = comment_line + 1
+
+        Enum.reject(dangers_acc, fn
+          {^safe_type, ^target_line} -> true
+          _ -> false
+        end)
     end)
   end
 

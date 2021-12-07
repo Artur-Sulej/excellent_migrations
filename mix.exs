@@ -38,7 +38,7 @@ defmodule ExcellentMigrations.MixProject do
   defp deps do
     [
       {:credo, "~> 1.5", optional: true},
-      {:ex_doc, ">= 0.0.0", only: :docs, runtime: false}
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
     ]
   end
 

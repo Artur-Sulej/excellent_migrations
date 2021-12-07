@@ -339,12 +339,13 @@ config :excellent_migrations, start_after: "20191026080101"
 
 ## Contributing
 
-Everyone is encouraged to help improve this project. Here are a few ways you can help:
+Everyone is encouraged and welcome to help improve this project. Here are a few ways you can help:
 
 - Give feedback – your opinion matters
-- Suggest or add new
-  features, [submit pull requests](https://github.com/Artur-Sulej/excellent_migrations/pulls)
-- [Report bugs](https://github.com/Artur-Sulej/excellent_migrations/issues)
+- Visit [TODO list](https://github.com/Artur-Sulej/excellent_migrations/projects/1)
+- [Submit pull request](https://github.com/Artur-Sulej/excellent_migrations/pulls)
+- [Suggest feature](https://github.com/Artur-Sulej/excellent_migrations/issues)
+- [Report bug](https://github.com/Artur-Sulej/excellent_migrations/issues)
 - Improve documentation
 
 ## Copyright and License

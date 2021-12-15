@@ -194,7 +194,7 @@ end
 defmodule Cookbook.AddNotNullOnShape do
   def change do
     alter table(:dumplings) do
-      modify :shape, :integer, null: true
+      modify :shape, :integer, null: false
     end
   end
 end

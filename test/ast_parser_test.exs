@@ -33,6 +33,13 @@ defmodule ExcellentMigrations.AstParserTest do
     assert [] == AstParser.parse(ast2)
   end
 
+  test "detects json column added using if not exists" do
+    ast1 = string_to_ast(~s(add_if_not_exists :details, :json, null: false, default: "{}"))
+    ast2 = string_to_ast(~s(add_if_not_exists :details, :jsonb, null: false, default: "{}"))
+    assert [json_column_added: 1] == AstParser.parse(ast1)
+    assert [] == AstParser.parse(ast2)
+  end
+
   test "detects reference added" do
     ast1 =
       string_to_ast("modify(:ingredient_id, references(:ingredients), from: references(:stuff))")
@@ -121,6 +128,31 @@ defmodule ExcellentMigrations.AstParserTest do
     assert [] == AstParser.parse(ast_conc_true)
   end
 
+  test "detects index added not concurrently using if not exists" do
+    ast_single = string_to_ast("create_if_not_exists index(:dumplings, :dough)")
+
+    ast_single_with_opts =
+      string_to_ast("create_if_not_exists index(:dumplings, :dough, unique: true)")
+
+    ast_multi = string_to_ast("create_if_not_exists index(:dumplings, [:dough])")
+
+    ast_multi_with_opts =
+      string_to_ast("create_if_not_exists index(:dumplings, [:dough], unique: true)")
+
+    ast_conc_false =
+      string_to_ast("create_if_not_exists index(:dumplings, [:dough], concurrently: false)")
+
+    ast_conc_true =
+      string_to_ast("create_if_not_exists index(:dumplings, [:dough], concurrently: true)")
+
+    assert [index_not_concurrently: 1] == AstParser.parse(ast_single)
+    assert [index_not_concurrently: 1] == AstParser.parse(ast_single_with_opts)
+    assert [index_not_concurrently: 1] == AstParser.parse(ast_multi)
+    assert [index_not_concurrently: 1] == AstParser.parse(ast_multi_with_opts)
+    assert [index_not_concurrently: 1] == AstParser.parse(ast_conc_false)
+    assert [] == AstParser.parse(ast_conc_true)
+  end
+
   test "detects index with too many columns" do
     ast_too_many_not_concurrently =
       string_to_ast("create index(\"ingredients\", [:a, :b, :c, :d])")
@@ -148,6 +180,17 @@ defmodule ExcellentMigrations.AstParserTest do
              AstParser.parse(add_column_with_default_in_existing_table_ast())
 
     assert [] == AstParser.parse(add_column_with_default_in_new_table_ast())
+  end
+
+  test "detects column added with default using if not exists" do
+    ast1 =
+      string_to_ast("""
+      alter table("dumplings") do
+        add_if_not_exists(:taste, :string, default: "sweet")
+      end
+      """)
+
+    assert [column_added_with_default: 2] == AstParser.parse(ast1)
   end
 
   test "detects column removed" do

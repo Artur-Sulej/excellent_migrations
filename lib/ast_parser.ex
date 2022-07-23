@@ -33,11 +33,13 @@ defmodule ExcellentMigrations.AstParser do
       detect_json_column_added(code_part)
   end
 
-  defp detect_index_not_concurrently({:create, location, [{:index, _, [_, _]}]}) do
+  defp detect_index_not_concurrently({fun_name, location, [{:index, _, [_, _]}]})
+       when fun_name in [:create, :create_if_not_exists] do
     [{:index_not_concurrently, Keyword.get(location, :line)}]
   end
 
-  defp detect_index_not_concurrently({:create, location, [{:index, _, [_, _, options]}]}) do
+  defp detect_index_not_concurrently({fun_name, location, [{:index, _, [_, _, options]}]})
+       when fun_name in [:create, :create_if_not_exists] do
     case Keyword.get(options, :concurrently) do
       true -> []
       _ -> [{:index_not_concurrently, Keyword.get(location, :line)}]
@@ -46,7 +48,8 @@ defmodule ExcellentMigrations.AstParser do
 
   defp detect_index_not_concurrently(_), do: []
 
-  defp detect_many_columns_index({:create, location, [{:index, _, [_, columns, options]}]}) do
+  defp detect_many_columns_index({fun_name, location, [{:index, _, [_, columns, options]}]})
+       when fun_name in [:create, :create_if_not_exists] do
     cond do
       Keyword.get(options, :unique) ->
         []
@@ -70,21 +73,15 @@ defmodule ExcellentMigrations.AstParser do
 
   defp detect_many_columns_index(_), do: []
 
-  defp detect_column_removed({:remove, location, _}) do
-    [{:column_removed, Keyword.get(location, :line)}]
-  end
-
-  defp detect_column_removed({:remove_if_exists, location, _}) do
+  defp detect_column_removed({fun_name, location, _})
+       when fun_name in [:remove, :remove_if_exists] do
     [{:column_removed, Keyword.get(location, :line)}]
   end
 
   defp detect_column_removed(_), do: []
 
-  defp detect_table_dropped({:drop, location, [{:table, _, _} | _]}) do
-    [{:table_dropped, Keyword.get(location, :line)}]
-  end
-
-  defp detect_table_dropped({:drop_if_exists, location, [{:table, _, _} | _]}) do
+  defp detect_table_dropped({fun_name, location, [{:table, _, _} | _]})
+       when fun_name in [:drop, :drop_if_exists] do
     [{:table_dropped, Keyword.get(location, :line)}]
   end
 
@@ -140,7 +137,8 @@ defmodule ExcellentMigrations.AstParser do
 
   def detect_not_null_added(_), do: []
 
-  def detect_json_column_added({:add, location, [_, :json | _]}) do
+  def detect_json_column_added({fun_name, location, [_, :json | _]})
+      when fun_name in [:add, :add_if_not_exists] do
     [{:json_column_added, Keyword.get(location, :line)}]
   end
 
@@ -170,7 +168,8 @@ defmodule ExcellentMigrations.AstParser do
 
   def detect_records_modified(_), do: []
 
-  defp detect_column_added_with_default_inner({:add, location, [_, _, options]}) do
+  defp detect_column_added_with_default_inner({fun_name, location, [_, _, options]})
+       when fun_name in [:add, :add_if_not_exists] do
     if Keyword.has_key?(options, :default) do
       [{:column_added_with_default, Keyword.get(location, :line)}]
     else

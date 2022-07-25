@@ -153,6 +153,52 @@ defmodule ExcellentMigrations.AstParserTest do
     assert [] == AstParser.parse(ast_conc_true)
   end
 
+  test "detects unique index added not concurrently" do
+    ast_single = string_to_ast("create unique_index(:dumplings, :dough)")
+    ast_single_with_opts = string_to_ast("create unique_index(:dumplings, :dough, unique: true)")
+    ast_multi = string_to_ast("create unique_index(:dumplings, [:dough])")
+    ast_multi_with_opts = string_to_ast("create unique_index(:dumplings, [:dough], unique: true)")
+
+    ast_conc_false =
+      string_to_ast("create unique_index(:dumplings, [:dough], concurrently: false)")
+
+    ast_conc_true = string_to_ast("create unique_index(:dumplings, [:dough], concurrently: true)")
+
+    assert [index_not_concurrently: 1] == AstParser.parse(ast_single)
+    assert [index_not_concurrently: 1] == AstParser.parse(ast_single_with_opts)
+    assert [index_not_concurrently: 1] == AstParser.parse(ast_multi)
+    assert [index_not_concurrently: 1] == AstParser.parse(ast_multi_with_opts)
+    assert [index_not_concurrently: 1] == AstParser.parse(ast_conc_false)
+    assert [] == AstParser.parse(ast_conc_true)
+  end
+
+  test "detects unique index added not concurrently using if not exists" do
+    ast_single = string_to_ast("create_if_not_exists unique_index(:dumplings, :dough)")
+
+    ast_single_with_opts =
+      string_to_ast("create_if_not_exists unique_index(:dumplings, :dough, unique: true)")
+
+    ast_multi = string_to_ast("create_if_not_exists unique_index(:dumplings, [:dough])")
+
+    ast_multi_with_opts =
+      string_to_ast("create_if_not_exists unique_index(:dumplings, [:dough], unique: true)")
+
+    ast_conc_false =
+      string_to_ast(
+        "create_if_not_exists unique_index(:dumplings, [:dough], concurrently: false)"
+      )
+
+    ast_conc_true =
+      string_to_ast("create_if_not_exists unique_index(:dumplings, [:dough], concurrently: true)")
+
+    assert [index_not_concurrently: 1] == AstParser.parse(ast_single)
+    assert [index_not_concurrently: 1] == AstParser.parse(ast_single_with_opts)
+    assert [index_not_concurrently: 1] == AstParser.parse(ast_multi)
+    assert [index_not_concurrently: 1] == AstParser.parse(ast_multi_with_opts)
+    assert [index_not_concurrently: 1] == AstParser.parse(ast_conc_false)
+    assert [] == AstParser.parse(ast_conc_true)
+  end
+
   test "detects index with too many columns" do
     ast_too_many_not_concurrently =
       string_to_ast("create index(\"ingredients\", [:a, :b, :c, :d])")

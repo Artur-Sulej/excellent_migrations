@@ -11,7 +11,9 @@ defmodule ExcellentMigrations.RunnerTest do
       "test/example_migrations/20191026103005_remove_column.exs",
       "test/example_migrations/20191026103006_rename_table.exs",
       "test/example_migrations/20191026103007_add_column_with_default_value.exs",
-      "test/example_migrations/20191026103008_change_column_type.exs"
+      "test/example_migrations/20191026103008_change_column_type.exs",
+      "test/example_migrations/20220725111000_create_index.exs",
+      "test/example_migrations/20220725111501_create_unique_index.exs"
     ]
 
     assert {
@@ -56,6 +58,46 @@ defmodule ExcellentMigrations.RunnerTest do
                  line: 4,
                  path: "test/example_migrations/20191026103008_change_column_type.exs",
                  type: :column_type_changed
+               },
+               %{
+                 line: 3,
+                 path: "test/example_migrations/20220725111000_create_index.exs",
+                 type: :index_not_concurrently
+               },
+               %{
+                 line: 4,
+                 path: "test/example_migrations/20220725111000_create_index.exs",
+                 type: :index_not_concurrently
+               },
+               %{
+                 line: 8,
+                 path: "test/example_migrations/20220725111000_create_index.exs",
+                 type: :index_not_concurrently
+               },
+               %{
+                 line: 9,
+                 path: "test/example_migrations/20220725111000_create_index.exs",
+                 type: :index_not_concurrently
+               },
+               %{
+                 line: 3,
+                 path: "test/example_migrations/20220725111501_create_unique_index.exs",
+                 type: :index_not_concurrently
+               },
+               %{
+                 line: 4,
+                 path: "test/example_migrations/20220725111501_create_unique_index.exs",
+                 type: :index_not_concurrently
+               },
+               %{
+                 line: 8,
+                 path: "test/example_migrations/20220725111501_create_unique_index.exs",
+                 type: :index_not_concurrently
+               },
+               %{
+                 line: 9,
+                 path: "test/example_migrations/20220725111501_create_unique_index.exs",
+                 type: :index_not_concurrently
                }
              ]
            } == Runner.check_migrations(migrations_paths: file_paths)

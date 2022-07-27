@@ -6,6 +6,7 @@ defmodule ExcellentMigrations.DangersDetector do
 
   alias ExcellentMigrations.{
     AstParser,
+    AstParserFullDetections,
     ConfigCommentsParser,
     DangersFilter
   }
@@ -26,6 +27,8 @@ defmodule ExcellentMigrations.DangersDetector do
           | :raw_sql_executed
           | :table_dropped
           | :table_renamed
+          | :index_concurrently_without_disable_ddl_transaction
+          | :index_concurrently_without_disable_migration_lock
 
   @type line :: integer
 
@@ -61,7 +64,14 @@ defmodule ExcellentMigrations.DangersDetector do
   """
   @spec detect_dangers(ast, String.t()) :: [{danger_type, line}]
   def detect_dangers(ast, source_code) do
-    parsed_dangers = AstParser.parse(ast)
+    parsed_dangers =
+      [
+        &AstParser.parse/1,
+        &AstParserFullDetections.parse/1
+      ]
+      |> Enum.map(&apply(&1, [ast]))
+      |> Enum.concat()
+
     parsed_safety_assured = ConfigCommentsParser.parse(source_code)
     skipped_types = Application.get_env(:excellent_migrations, :skip_checks, [])
     DangersFilter.filter_dangers(parsed_dangers, parsed_safety_assured, skipped_types)

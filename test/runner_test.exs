@@ -20,6 +20,8 @@ defmodule ExcellentMigrations.RunnerTest do
       "test/example_migrations/20191026103006_rename_table.exs",
       "test/example_migrations/20191026103007_add_column_with_default_value.exs",
       "test/example_migrations/20191026103008_change_column_type.exs",
+      "test/example_migrations/20220725111000_create_index.exs",
+      "test/example_migrations/20220725111501_create_unique_index.exs",
       "test/example_migrations/20220726010151_create_index_concurrently_invalid.exs"
     ]
 
@@ -67,17 +69,57 @@ defmodule ExcellentMigrations.RunnerTest do
                  type: :column_type_changed
                },
                %{
-                 line: 13,
-                 path:
-                   "test/example_migrations/20220726010151_create_index_concurrently_invalid.exs",
-                 type: :index_concurrently_without_disable_migration_lock
+                 line: 3,
+                 path: "test/example_migrations/20220725111000_create_index.exs",
+                 type: :index_not_concurrently
                },
                %{
-                 line: 13,
-                 path:
-                   "test/example_migrations/20220726010151_create_index_concurrently_invalid.exs",
-                 type: :index_concurrently_without_disable_ddl_transaction
-               }
+                 line: 4,
+                 path: "test/example_migrations/20220725111000_create_index.exs",
+                 type: :index_not_concurrently
+               },
+               %{
+                 line: 8,
+                 path: "test/example_migrations/20220725111000_create_index.exs",
+                 type: :index_not_concurrently
+               },
+               %{
+                 line: 9,
+                 path: "test/example_migrations/20220725111000_create_index.exs",
+                 type: :index_not_concurrently
+               },
+               %{
+                 line: 3,
+                 path: "test/example_migrations/20220725111501_create_unique_index.exs",
+                 type: :index_not_concurrently
+               },
+               %{
+                 line: 4,
+                 path: "test/example_migrations/20220725111501_create_unique_index.exs",
+                 type: :index_not_concurrently
+               },
+               %{
+                 line: 8,
+                 path: "test/example_migrations/20220725111501_create_unique_index.exs",
+                 type: :index_not_concurrently
+               },
+               %{
+                 line: 9,
+                 path: "test/example_migrations/20220725111501_create_unique_index.exs",
+                 type: :index_not_concurrently
+               },
+               %{
+                line: 13,
+                path:
+                  "test/example_migrations/20220726010151_create_index_concurrently_invalid.exs",
+                type: :index_concurrently_without_disable_migration_lock
+              },
+              %{
+                line: 13,
+                path:
+                  "test/example_migrations/20220726010151_create_index_concurrently_invalid.exs",
+                type: :index_concurrently_without_disable_ddl_transaction
+              }
              ]
            } == Runner.check_migrations(migrations_paths: file_paths)
   end

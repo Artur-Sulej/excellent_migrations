@@ -20,8 +20,8 @@ defmodule ExcellentMigrations.AstParserFullDetections do
     default = %{
       line: nil,
       is_index_concurrently?: false,
-      has_transaction?: false,
-      has_lock?: false
+      ddl_transaction_disabled?: false,
+      lock_disabled?: false
     }
 
     ast
@@ -30,13 +30,13 @@ defmodule ExcellentMigrations.AstParserFullDetections do
       {_, %{is_index_concurrently?: false}} ->
         []
 
-      {_, %{has_lock?: true, has_transaction?: true}} ->
+      {_, %{lock_disabled?: true, ddl_transaction_disabled?: true}} ->
         []
 
-      {_, %{has_lock?: true, has_transaction?: false, line: line}} ->
+      {_, %{lock_disabled?: true, ddl_transaction_disabled?: false, line: line}} ->
         [{:index_concurrently_without_disable_migration_lock, line}]
 
-      {_, %{has_lock?: false, has_transaction?: true, line: line}} ->
+      {_, %{lock_disabled?: false, ddl_transaction_disabled?: true, line: line}} ->
         [{:index_concurrently_without_disable_ddl_transaction, line}]
 
       {_, %{line: line}} ->
@@ -62,14 +62,14 @@ defmodule ExcellentMigrations.AstParserFullDetections do
          {:disable_ddl_transaction, _, [true]} = ast_part,
          acc
        ) do
-    {ast_part, %{acc | has_transaction?: true}}
+    {ast_part, %{acc | ddl_transaction_disabled?: true}}
   end
 
   defp detect_invalid_index_concurrently_inner(
          {:disable_migration_lock, _, [true]} = ast_part,
          acc
        ) do
-    {ast_part, %{acc | has_lock?: true}}
+    {ast_part, %{acc | lock_disabled?: true}}
   end
 
   defp detect_invalid_index_concurrently_inner(ast_part, acc) do

@@ -66,10 +66,9 @@ defmodule ExcellentMigrations.DangersDetector do
   def detect_dangers(ast, source_code) do
     parsed_dangers =
       [
-        &AstParser.parse/1,
-        &AstParserFullDetections.parse/1
+        AstParser.parse(ast),
+        AstParserFullDetections.parse(ast)
       ]
-      |> Enum.map(&apply(&1, [ast]))
       |> Enum.concat()
 
     parsed_safety_assured = ConfigCommentsParser.parse(source_code)

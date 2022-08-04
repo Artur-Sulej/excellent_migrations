@@ -4,7 +4,7 @@ defmodule ExcellentMigrations.RunnerTest do
 
   test "it should be valid migration files" do
     file_paths = [
-      # "test/example_migrations/20220726000151_create_index_concurrently_valid.exs"
+      "test/example_migrations/20220726000151_create_index_concurrently_valid.exs"
     ]
 
     assert :safe == Runner.check_migrations(migrations_paths: file_paths)

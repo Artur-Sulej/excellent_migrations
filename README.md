@@ -28,12 +28,45 @@ Documentation is available on [Hexdocs](https://hexdocs.pm/excellent_migrations/
 
 ## How It Works
 
-This tool analyzes code (AST) of migration files. You don't have to edit or include anything in your
-migration files, except for occasionally adding module attribute `@safety_assured`.
+This tool analyzes code (AST) of migration files. You don't have to edit or include any additional
+code in your migration files, except for occasionally adding a config comment
+for [assuring safety](#assuring-safety).
 
 ## How to use it
 
 There are multiple ways to integrate with Excellent Migrations.
+
+### Credo check
+
+Excellent Migrations provide custom, ready-to-use check for [Credo](https://github.com/rrrene/credo).
+
+Add `ExcellentMigrations.CredoCheck.MigrationsSafety` to your `.credo` file:
+
+```elixir
+%{
+  configs: [
+    %{
+      # …
+      checks: [
+        # …
+        {ExcellentMigrations.CredoCheck.MigrationsSafety, []}
+      ]
+    }
+  ]
+}
+
+```
+
+Example credo warnings:
+
+```
+  Warnings - please take a look
+┃
+┃ [W] ↗ Raw SQL used
+┃       apps/cookbook/priv/repo/migrations/20211024133700_create_recipes.exs:13 #(Cookbook.Repo.Migrations.CreateRecipes.up)
+┃ [W] ↗ Index added not concurrently
+┃       apps/cookbook/priv/repo/migrations/20211024133705_create_index_on_veggies.exs:37 #(Cookbook.Repo.Migrations.CreateIndexOnVeggies.up)
+```
 
 ### mix task
 
@@ -47,20 +80,6 @@ This mix task analyzes migrations and logs a warning for each danger detected.
 
 Running this task will first analyze migrations. If no dangers are detected it will proceed and
 run `mix ecto.migrate`. If there are any, it will log errors and stop.
-
-### Credo check
-
-Excellent Migrations provide custom check for [Credo](https://github.com/rrrene/credo).
-Add `ExcellentMigrations.CredoCheck.MigrationsSafety` to your `.credo` file. Example warnings:
-
-```
-  Warnings - please take a look
-┃
-┃ [W] ↗ Raw SQL used
-┃       apps/cookbook/priv/repo/migrations/20211024133700_create_recipes.exs:13 #(Cookbook.Repo.Migrations.CreateRecipes.up)
-┃ [W] ↗ Index added not concurrently
-┃       apps/cookbook/priv/repo/migrations/20211024133705_create_index_on_veggies.exs:37 #(Cookbook.Repo.Migrations.CreateIndexOnVeggies.up)
-```
 
 ### Code
 
@@ -89,6 +108,7 @@ Postgres-specific checks:
 - [Adding a json column](#adding-a-json-column)
 - [Adding a reference](#adding-a-reference)
 - [Adding an index non-concurrently](#adding-an-index-non-concurrently)
+- [Adding an index concurrently without disabling lock nor transaction](#adding-an-index-concurrently-without-disabling-lock-nor-transaction)
 
 Best practices:
 
@@ -228,6 +248,21 @@ defmodule Cookbook.AddIndex do
 end
 ```
 
+### Adding an index concurrently without disabling lock nor transaction
+
+#### Example
+
+```elixir
+defmodule Cookbook.AddIndex do
+  # @disable_ddl_transaction true # missing
+  # @disable_migration_lock true  # missing   
+
+  def change do
+    create index(:dumplings, [:recipe_id, :flour_id], concurrently: true)
+  end
+end
+```
+
 ### Adding a reference
 
 #### Example
@@ -304,6 +339,8 @@ Possible operation types are:
 * `column_removed`
 * `column_renamed`
 * `column_type_changed`
+* `index_concurrently_without_disable_ddl_transaction`
+* `index_concurrently_without_disable_migration_lock`
 * `index_not_concurrently`
 * `json_column_added`
 * `many_columns_index`

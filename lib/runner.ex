@@ -23,6 +23,8 @@ defmodule ExcellentMigrations.Runner do
           | :raw_sql_executed
           | :table_dropped
           | :table_renamed
+          | :index_concurrently_without_disable_ddl_transaction
+          | :index_concurrently_without_disable_migration_lock
 
   @type danger :: %{
           type: danger_type,

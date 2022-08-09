@@ -108,7 +108,7 @@ Postgres-specific checks:
 - [Adding a json column](#adding-a-json-column)
 - [Adding a reference](#adding-a-reference)
 - [Adding an index non-concurrently](#adding-an-index-non-concurrently)
-- [Adding an index concurrently without disabling lock nor transaction](#adding-an-index-concurrently-without-disabling-lock-nor-transaction)
+- [Adding an index concurrently without disabling lock or transaction](#adding-an-index-concurrently-without-disabling-lock-or-transaction)
 
 Best practices:
 
@@ -248,20 +248,26 @@ defmodule Cookbook.AddIndex do
 end
 ```
 
-### Adding an index concurrently without disabling lock nor transaction
+### Adding an index concurrently without disabling lock or transaction
 
-#### Example
+Concurrently indexes need to set both `@disable_ddl_transaction` and `@disable_migration_lock` to true. [See more](https://hexdocs.pm/ecto_sql/Ecto.Migration.html#index/3-adding-dropping-indexes-concurrently):
+
+#### Bad example
 
 ```elixir
 defmodule Cookbook.AddIndex do
-  # @disable_ddl_transaction true # missing
-  # @disable_migration_lock true  # missing   
-
   def change do
     create index(:dumplings, [:recipe_id, :flour_id], concurrently: true)
   end
 end
 ```
+
+#### Good example
+
+```elixir
+defmodule Cookbook.AddIndex do
+  @disable_ddl_transaction true
+  @disable_migration_lock true
 
 ### Adding a reference
 
@@ -351,6 +357,8 @@ Possible operation types are:
 * `raw_sql_executed`
 * `table_dropped`
 * `table_renamed`
+* `index_concurrently_without_disable_ddl_transaction`
+* `index_concurrently_without_disable_migration_lock`
 
 ## Disable checks
 

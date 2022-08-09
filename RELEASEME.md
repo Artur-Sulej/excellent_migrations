@@ -9,6 +9,7 @@
 ```sh
   git commit -a -m "Bump version to 0.X.Y"
   git tag v0.X.Y
+  mix hex.user auth
   mix hex.publish
   git push --tags
 ```

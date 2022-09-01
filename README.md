@@ -118,141 +118,479 @@ You can also [disable specific checks](#disable-checks).
 
 ### Removing a column
 
-#### Example
+If Ecto is still configured to read a column in any running instances of the application, then queries will fail when loading data into your structs. This can happen in multi-node deployments or if you start the application before running migrations.
+
+**BAD ❌**
 
 ```elixir
-defmodule Cookbook.RemoveSizeFromDumplings do
-  def change do
-    alter table(:dumplings) do
-      remove :size, :string
-    end
+# Without a code change to the Ecto Schema
+
+def change do
+  alter table("posts") do
+    remove :no_longer_needed_column
   end
 end
 ```
+
+**GOOD ✅**
+
+Safety can be assured if the application code is first updated to remove references to the column so it's no longer loaded or queried. Then, the column can safely be removed from the table.
+
+1. Deploy code change to remove references to the field.
+1. Deploy migration change to remove the column.
+
+First deployment:
+
+```diff
+# First deploy, in the Ecto schema
+
+defmodule MyApp.Post do
+  schema "posts" do
+-   column :no_longer_needed_column, :text
+  end
+end
+```
+
+Second deployment:
+
+```elixir
+def change do
+  alter table("posts") do
+    remove :no_longer_needed_column
+  end
+end
+```
+
+---
 
 ### Adding a column with a default value
 
-#### Example
+Adding a column with a default value to an existing table may cause the table to be rewritten. During this time, reads and writes are blocked in Postgres, and writes are blocked in MySQL and MariaDB.
+
+**BAD ❌**
+
+Note: This becomes safe in:
+
+- Postgres 11+
+- MySQL 8.0.12+
+- MariaDB 10.3.2+
 
 ```elixir
-defmodule Cookbook.AddTasteToDumplingsWithDefault do
-  def change do
-    alter table(:dumplings) do
-      add(:taste, :string, default: "sweet")
-    end
+def change do
+  alter table("comments") do
+    add :approved, :boolean, default: false
+    # This took 10 minutes for 100 million rows with no fkeys,
+
+    # Obtained an AccessExclusiveLock on the table, which blocks reads and
+    # writes.
   end
 end
 ```
+
+**GOOD ✅**
+
+Add the column first, then alter it to include the default.
+
+First migration:
+
+```elixir
+def change do
+  alter table("comments") do
+    add :approved, :boolean
+    # This took 0.27 milliseconds for 100 million rows with no fkeys,
+  end
+end
+```
+
+Second migration:
+
+```elixir
+def change do
+  alter table("comments") do
+    modify :approved, :boolean, default: false
+    # This took 0.28 milliseconds for 100 million rows with no fkeys,
+  end
+end
+```
+
+Schema change to read the new column:
+
+```diff
+schema "comments" do
++ field :approved, :boolean, default: false
+end
+```
+
+---
 
 ### Backfilling data
 
-#### Example
+Ecto creates a transaction around each migration, and backfilling in the same transaction that alters a table keeps the table locked for the duration of the backfill.
+Also, running a single query to update data can cause issues for large tables.
+
+**BAD ❌**
+
 
 ```elixir
-defmodule Cookbook.BackfillRecords do
+defmodule Cookbook.BackfillPosts do
+  use Ecto.Migration
+  import Ecto.Query
+
   def change do
-    Repo.insert!(%Dumpling{taste: "umami"})
+    alter table("posts") do
+      add :new_data, :text
+    end
+
+    flush()
+
+    MyApp.MySchema
+    |> where(new_data: nil)
+    |> MyApp.Repo.update_all(set: [new_data: "some data"])
   end
 end
+
 ```
+
+**GOOD ✅**
+
+There are several different strategies to perform safe backfilling. [This article](https://fly.io/phoenix-files/backfilling-data) explains them in great details.
+
+---
 
 ### Changing the type of a column
 
-#### Example
+Changing the type of a column may cause the table to be rewritten. During this time, reads and writes are blocked in Postgres, and writes are blocked in MySQL and MariaDB.
+
+**BAD ❌**
+
+Safe in Postgres:
+
+- increasing length on varchar or removing the limit
+- changing varchar to text
+- changing text to varchar with no length limit
+- Postgres 9.2+ - increasing precision (NOTE: not scale) of decimal or numeric columns. eg, increasing 8,2 to 10,2 is safe. Increasing 8,2 to 8,4 is not safe.
+- Postgres 9.2+ - changing decimal or numeric to be unconstrained
+- Postgres 12+ - changing timestamp to timestamptz when session TZ is UTC
+
+Safe in MySQL/MariaDB:
+
+- increasing length of varchar from < 255 up to 255.
+- increasing length of varchar from > 255 up to max.
 
 ```elixir
-defmodule Cookbook.ChangeColumnSizeTypeToInteger do
-  def change do
-    alter table(:dumplings) do
-      modify(:size, :integer)
-    end
+def change do
+  alter table("posts") do
+    modify :my_column, :boolean, from: :text
   end
 end
 ```
+
+**GOOD ✅**
+
+Take a phased approach:
+
+1. Create a new column
+1. In application code, write to both columns
+1. Backfill data from old column to new column
+1. In application code, move reads from old column to the new column
+1. In application code, remove old column from Ecto schemas.
+1. Drop the old column.
+
+---
 
 ### Renaming a column
 
-#### Example
+Ask yourself: "Do I _really_ need to rename a column?". Probably not, but if you must, read on and be aware it requires time and effort.
+
+If Ecto is configured to read a column in any running instances of the application, then queries will fail when loading data into your structs. This can happen in multi-node deployments or if you start the application before running migrations.
+
+There is a shortcut: Don't rename the database column, and instead rename the schema's field name and configure it to point to the database column.
+
+**BAD ❌**
 
 ```elixir
-defmodule Cookbook.RenameFillingToStuffing do
-  def change do
-    rename table(:dumplings), :filling, to: :stuffing
+# In your schema
+schema "posts" do
+  field :summary, :text
+end
+
+
+# In your migration
+def change do
+  rename table("posts"), :title, to: :summary
+end
+```
+
+The time between your migration running and your application getting the new code may encounter trouble.
+
+**GOOD ✅**
+
+**Strategy 1**
+
+Rename the field in the schema only, and configure it to point to the database column and keep the database column the same. Ensure all calling code relying on the old field name is also updated to reference the new field name.
+
+```elixir
+defmodule MyApp.MySchema do
+  use Ecto.Schema
+
+  schema "weather" do
+    field :temp_lo, :integer
+    field :temp_hi, :integer
+    field :precipitation, :float, source: :prcp
+    field :city, :string
+
+    timestamps(type: :naive_datetime_usec)
   end
 end
 ```
+
+```diff
+## Update references in other parts of the codebase:
+   my_schema = Repo.get(MySchema, "my_id")
+-  my_schema.prcp
++  my_schema.precipitation
+```
+
+**Strategy 2**
+
+Take a phased approach:
+
+1. Create a new column
+1. In application code, write to both columns
+1. Backfill data from old column to new column
+1. In application code, move reads from old column to the new column
+1. In application code, remove old column from Ecto schemas.
+1. Drop the old column.
+
+---
 
 ### Renaming a table
 
-#### Example
+Ask yourself: "Do I _really_ need to rename a table?". Probably not, but if you must, read on and be aware it requires time and effort.
+
+If Ecto is still configured to read a table in any running instances of the application, then queries will fail when loading data into your structs. This can happen in multi-node deployments or if you start the application before running migrations.
+
+There is a shortcut: rename the schema only, and do not change the underlying database table name.
+
+**BAD ❌**
 
 ```elixir
-defmodule Cookbook.RenameDumplingsToNoodles do
-  def change do
-    rename(table(:dumplings), to: table("noodles"))
-  end
+def change do
+  rename table("posts"), to: table("articles")
 end
 ```
+
+**GOOD ✅**
+
+**Strategy 1**
+
+Rename the schema only and all calling code, and don’t rename the table:
+
+```diff
+- defmodule MyApp.Weather do
++ defmodule MyApp.Forecast do
+  use Ecto.Schema
+
+  schema "weather" do
+    field :temp_lo, :integer
+    field :temp_hi, :integer
+    field :precipitation, :float, source: :prcp
+    field :city, :string
+
+    timestamps(type: :naive_datetime_usec)
+  end
+end
+
+# and in calling code:
+- weather = MyApp.Repo.get(MyApp.Weather, “my_id”)
++ forecast = MyApp.Repo.get(MyApp.Forecast, “my_id”)
+```
+
+**Strategy 2**
+
+Take a phased approach:
+
+1. Create the new table. This should include creating new constraints (checks and foreign keys) that mimic behavior of the old table.
+1. In application code, write to both tables, continuing to read from the old table.
+1. Backfill data from old table to new table
+1. In application code, move reads from old table to the new table
+1. In application code, remove the old table from Ecto schemas.
+1. Drop the old table.
+
+---
 
 ### Adding a check constraint
 
-#### Example
+Adding a check constraint blocks reads and writes to the table in Postgres, and blocks writes in MySQL/MariaDB while every row is checked.
+
+**BAD ❌**
 
 ```elixir
-defmodule Cookbook.CreatePriceConstraint do
-  def change do
-    create constraint("dumplings", :price_must_be_positive, check: "price > 0")
-  end
+def change do
+  create constraint("products", :price_must_be_positive, check: "price > 0")
+  # Creating the constraint with validate: true (the default when unspecified)
+  # will perform a full table scan and acquires a lock preventing updates
 end
 ```
+
+**GOOD ✅**
+
+There are two operations occurring:
+
+1. Creating a new constraint for new or updating records
+1. Validating the new constraint for existing records
+
+If these commands are happening at the same time, it obtains a lock on the table as it validates the entire table and fully scans the table. To avoid this full table scan, we can separate the operations.
+
+In one migration:
+
+```elixir
+def change do
+  create constraint("products", :price_must_be_positive, check: "price > 0", validate: false)
+  # Setting validate: false will prevent a full table scan, and therefore
+  # commits immediately.
+end
+```
+
+In the next migration:
+
+```elixir
+def change do
+  execute "ALTER TABLE products VALIDATE CONSTRAINT price_must_be_positive", ""
+  # Acquires SHARE UPDATE EXCLUSIVE lock, which allows updates to continue
+end
+```
+
+These can be in the same deployment, but ensure there are 2 separate migrations.
+
+---
 
 ### Setting NOT NULL on an existing column
 
-#### Example
+Setting NOT NULL on an existing column blocks reads and writes while every row is checked.  Just like the Adding a check constraint scenario, there are two operations occurring:
+
+1. Creating a new constraint for new or updating records
+1. Validating the new constraint for existing records
+
+To avoid the full table scan, we can separate these two operations.
+
+**BAD ❌**
 
 ```elixir
-defmodule Cookbook.AddNotNullOnShape do
-  def change do
-    alter table(:dumplings) do
-      modify :shape, :integer, null: false
-    end
+def change do
+  alter table("products") do
+    modify :active, :boolean, null: false
   end
 end
 ```
+
+**GOOD ✅**
+
+Add a check constraint without validating it, backfill data to satiate the constraint and then validate it. This will be functionally equivalent.
+
+In the first migration:
+
+```elixir
+# Deployment 1
+def change do
+  create constraint("products", :active_not_null, check: "active IS NOT NULL", validate: false)
+end
+```
+
+This will enforce the constraint in all new rows, but not care about existing rows until that row is updated.
+
+You'll likely need a data migration at this point to ensure that the constraint is satisfied.
+
+Then, in the next deployment's migration, we'll enforce the constraint on all rows:
+
+```elixir
+# Deployment 2
+def change do
+  execute "ALTER TABLE products VALIDATE CONSTRAINT active_not_null", ""
+end
+```
+
+If you're using Postgres 12+, you can add the NOT NULL to the column after validating the constraint. From the Postgres 12 docs:
+
+> SET NOT NULL may only be applied to a column provided
+> none of the records in the table contain a NULL value
+> for the column. Ordinarily this is checked during the
+> ALTER TABLE by scanning the entire table; however, if
+> a valid CHECK constraint is found which proves no NULL
+> can exist, then the table scan is skipped.
+
+```elixir
+# **Postgres 12+ only**
+
+def change do
+  execute "ALTER TABLE products VALIDATE CONSTRAINT active_not_null", ""
+
+  alter table("products") do
+    modify :active, :boolean, null: false
+  end
+
+  drop constraint("products", :active_not_null)
+end
+```
+
+If your constraint fails, then you should consider backfilling data first to cover the gaps in your desired data integrity, then revisit validating the constraint.
+
+---
 
 ### Executing SQL directly
 
-#### Example
+Excellent Migrations can’t ensure safety for raw SQL statements. Make really sure that what you’re doing is safe, then use:
 
 ```elixir
-defmodule Cookbook.CreateIndexOnDumplings do
-  def up do
-    execute("CREATE INDEX dumplings_geog ON dumplings using GIST(Geography(geom));")
-  end
+defmodule Cookbook.ExecuteRawSql do
+  # excellent_migrations:safety-assured-for-this-file raw_sql_executed
 
-  def down do
-    execute("DROP INDEX dumplings_geog;")
+  def change do
+    execute("...")
   end
 end
 ```
+
+---
 
 ### Adding an index non-concurrently
 
-#### Example
+Creating an index will block both reads and writes.
+
+**BAD ❌**
 
 ```elixir
-defmodule Cookbook.AddIndex do
-  def change do
-    create index(:dumplings, [:recipe_id, :flour_id])
-  end
+def change do
+  create index("posts", [:slug])
+
+  # This obtains a ShareLock on "posts" which will block writes to the table
 end
 ```
+
+**GOOD ✅**
+
+With Postgres, instead create the index concurrently which does not block reads. You will need to disable the database transactions to use `CONCURRENTLY`, and since Ecto obtains migration locks through database transactions this also implies that competing nodes may attempt to try to run the same migration (eg, in a multi-node Kubernetes environment that runs migrations before startup). Therefore, some nodes will fail startup for a variety of reasons. 
+
+```elixir
+@disable_ddl_transaction true
+@disable_migration_lock true
+
+def change do
+  create index("posts", [:slug], concurrently: true)
+end
+```
+
+The migration may still take a while to run, but reads and updates to rows will continue to work. For example, for 100,000,000 rows it took 165 seconds to add run the migration, but SELECTS and UPDATES could occur while it was running.
+
+**Do not have other changes in the same migration**; only create the index concurrently and separate other changes to later migrations.
+
+---
 
 ### Adding an index concurrently without disabling lock or transaction
 
 Concurrently indexes need to set both `@disable_ddl_transaction` and `@disable_migration_lock` to true. [See more](https://hexdocs.pm/ecto_sql/Ecto.Migration.html#index/3-adding-dropping-indexes-concurrently):
 
-#### Bad example
+**BAD ❌**
 
 ```elixir
 defmodule Cookbook.AddIndex do
@@ -262,38 +600,92 @@ defmodule Cookbook.AddIndex do
 end
 ```
 
-#### Good example
+**GOOD ✅**
 
 ```elixir
 defmodule Cookbook.AddIndex do
   @disable_ddl_transaction true
   @disable_migration_lock true
 
-### Adding a reference
-
-#### Example
-
-```elixir
-defmodule Cookbook.AddReferenceToIngredient do
   def change do
-    alter table(:recipes) do
-      modify :ingredient_id, references(:ingredients)
-    end
+    create index(:dumplings, [:recipe_id, :flour_id], concurrently: true)
   end
 end
 ```
+
+---
+
+### Adding a reference
+
+Adding a foreign key blocks writes on both tables.
+
+**BAD ❌**
+
+```elixir
+def change do
+  alter table("posts") do
+    add :group_id, references("groups")
+  end
+end
+```
+
+**GOOD ✅**
+
+In the first migration
+
+```elixir
+def change do
+  alter table("posts") do
+    add :group_id, references("groups", validate: false)
+  end
+end
+```
+
+In the second migration
+
+```elixir
+def change do
+  execute "ALTER TABLE posts VALIDATE CONSTRAINT group_id_fkey", ""
+end
+```
+
+ These migrations can be in the same deployment, but make sure they are separate migrations.
+
+---
 
 ### Adding a `json` column
 
+In Postgres, there is no equality operator for the json column type, which can cause errors for existing SELECT DISTINCT queries in your application.
+
+**BAD ❌**
+
 ```elixir
-defmodule Cookbook.AddDetailsJson do
-  def change do
-    add :details, :json, default: "{}"
+def change do
+  alter table("posts") do
+    add :extra_data, :json
   end
 end
 ```
 
+**GOOD ✅**
+
+Use jsonb instead. Some say it’s like “json” but “better.”
+
+```elixir
+def change do
+  alter table("posts") do
+    add :extra_data, :jsonb
+  end
+end
+```
+
+---
+
 ### Keeping non-unique indexes to three columns or less
+
+**BAD ❌**
+
+Adding a non-unique index with more than three columns rarely improves performance.
 
 ```elixir
 defmodule Cookbook.AddIndexOnIngredients do
@@ -304,6 +696,24 @@ defmodule Cookbook.AddIndexOnIngredients do
   end
 end
 ```
+
+**GOOD ✅**
+
+Instead, start an index with columns that narrow down the results the most.
+
+```elixir
+defmodule Cookbook.AddIndexOnIngredients do
+  def change do
+    alter table(:dumplings) do
+      create index(:ingredients, [:b, :d], concurrently: true)
+    end
+  end
+end
+```
+
+For Postgres, be sure to add them concurrently.
+
+---
 
 ## Assuring safety
 
@@ -381,6 +791,8 @@ config :excellent_migrations, start_after: "20191026080101"
 
 * https://github.com/ankane/strong_migrations (Ruby)
 * https://github.com/rrrene/credo (Elixir)
+
+Special thanks to https://github.com/fly-apps/safe-ecto-migrations for unsafe actions explanation and recipes.
 
 ## Contributing
 

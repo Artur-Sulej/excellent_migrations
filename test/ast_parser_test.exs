@@ -213,12 +213,16 @@ defmodule ExcellentMigrations.AstParserTest do
 
     ast_ok = string_to_ast("create index(\"ingredients\", [:a, :b, :c], concurrently: true)")
 
+    ast_single_with_opts =
+      string_to_ast("create index(\"ingredients\", :one_column, concurrently: true)")
+
     assert [index_not_concurrently: 1, many_columns_index: 1] ==
              AstParser.parse(ast_too_many_not_concurrently)
 
     assert [many_columns_index: 1] == AstParser.parse(ast_many_columns)
     assert [] == AstParser.parse(ast_many_but_unique)
     assert [] == AstParser.parse(ast_ok)
+    assert [] == AstParser.parse(ast_single_with_opts)
   end
 
   test "detects column added with default" do

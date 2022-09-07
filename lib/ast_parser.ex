@@ -52,7 +52,7 @@ defmodule ExcellentMigrations.AstParser do
   defp detect_index_not_concurrently(_), do: []
 
   defp detect_many_columns_index({fun_name, location, [{:index, _, [_, columns, options]}]})
-       when fun_name in [:create, :create_if_not_exists] do
+       when fun_name in [:create, :create_if_not_exists] and is_list(columns) do
     cond do
       Keyword.get(options, :unique) ->
         []

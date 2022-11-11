@@ -96,6 +96,7 @@ Potentially dangerous operations:
 - [Adding a check constraint](#adding-a-check-constraint)
 - [Adding a column with a default value](#adding-a-column-with-a-default-value)
 - [Backfilling data](#backfilling-data)
+- [Column with volatile default](#column-with-volatile-default)
 - [Changing the type of a column](#changing-the-type-of-a-column)
 - [Executing SQL directly](#executing-SQL-directly)
 - [Removing a column](#removing-a-column)
@@ -220,6 +221,43 @@ schema "comments" do
 + field :approved, :boolean, default: false
 end
 ```
+
+---
+
+### Column with volatile default
+
+If the default value is volatile (e.g., `clock_timestamp()`, `uuid_generate_v4()`, `random()`) each row will need to be updated with the value calculated at the time `ALTER TABLE` is executed.
+
+**BAD ❌**
+
+Adding volatile default to column:
+
+```elixir
+def change do
+  alter table(:dumplings) do
+    modify(:identifier, :uuid, default: fragment("uuid_generate_v4()"))
+  end
+end
+```
+
+Adding column with volatile default:
+
+```elixir
+def change do
+  alter table(:dumplings) do
+    add(:identifier, :uuid, default: fragment("uuid_generate_v4()"))
+  end
+end
+```
+
+**GOOD ✅**
+
+To avoid a potentially lengthy update operation, particularly if you intend to fill the column with mostly nondefault values anyway, it may be preferable to:
+1. add the column with no default
+1. insert the correct values using `UPDATE` query
+1. only then add any desired default
+
+Also creating a new table with column with volatile default is safe, because it does not contain any records. 
 
 ---
 
@@ -755,6 +793,7 @@ Possible operation types are:
 * `column_removed`
 * `column_renamed`
 * `column_type_changed`
+* `column_volatile_default`
 * `index_concurrently_without_disable_ddl_transaction`
 * `index_concurrently_without_disable_migration_lock`
 * `index_not_concurrently`
@@ -767,8 +806,6 @@ Possible operation types are:
 * `raw_sql_executed`
 * `table_dropped`
 * `table_renamed`
-* `index_concurrently_without_disable_ddl_transaction`
-* `index_concurrently_without_disable_migration_lock`
 
 ## Disable checks
 

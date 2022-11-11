@@ -29,6 +29,7 @@ defmodule ExcellentMigrations.AstParser do
       detect_table_renamed(code_part) ++
       detect_column_renamed(code_part) ++
       detect_column_added_with_default(code_part) ++
+      detect_column_volatile_default(code_part) ++
       detect_column_modified(code_part) ++
       detect_not_null_added(code_part) ++
       detect_check_constraint(code_part) ++
@@ -113,6 +114,20 @@ defmodule ExcellentMigrations.AstParser do
   end
 
   def detect_column_added_with_default(_), do: []
+
+  def detect_column_volatile_default(
+        {:alter, _,
+         [{:table, _, _}, [do: {fun_name, location, [_, _, [default: {:fragment, _, _}]]}]]}
+      )
+      when fun_name in [:add, :add_if_not_exists] do
+    [{:column_volatile_default, Keyword.get(location, :line)}]
+  end
+
+  def detect_column_volatile_default({:modify, location, [_, _, [default: {:fragment, _, _}]]}) do
+    [{:column_volatile_default, Keyword.get(location, :line)}]
+  end
+
+  def detect_column_volatile_default(_), do: []
 
   def detect_column_modified(
         {:modify, location, [_, {:references, _, _}, [from: {:references, _, _}]]}

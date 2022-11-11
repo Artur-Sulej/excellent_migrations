@@ -14,11 +14,17 @@ defmodule ExcellentMigrations.DangersDetector do
   @type ast :: list | tuple | atom | String.t()
 
   @type danger_type ::
-          :column_added_with_default
+          :check_constraint_added
+          | :column_added_with_default
+          | :column_reference_added
           | :column_removed
           | :column_renamed
           | :column_type_changed
+          | :column_volatile_default
+          | :index_concurrently_without_disable_ddl_transaction
+          | :index_concurrently_without_disable_migration_lock
           | :index_not_concurrently
+          | :json_column_added
           | :many_columns_index
           | :not_null_added
           | :operation_delete
@@ -27,8 +33,6 @@ defmodule ExcellentMigrations.DangersDetector do
           | :raw_sql_executed
           | :table_dropped
           | :table_renamed
-          | :index_concurrently_without_disable_ddl_transaction
-          | :index_concurrently_without_disable_migration_lock
 
   @type line :: integer
 

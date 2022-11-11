@@ -232,6 +232,48 @@ defmodule ExcellentMigrations.AstParserTest do
     assert [] == AstParser.parse(add_column_with_default_in_new_table_ast())
   end
 
+  test "detects column default changed to volatile" do
+    ast =
+      string_to_ast("""
+      alter table("dumplings") do
+        modify(:boiling_minutes, :integer, default: fragment("random()"))
+      end
+      """)
+
+    assert [column_volatile_default: 2, column_type_changed: 2] == AstParser.parse(ast)
+  end
+
+  test "detects column added with volatile default" do
+    ast_add_column1 =
+      string_to_ast("""
+      alter table("dumplings") do
+        add_if_not_exists(:identifier, :uuid, default: fragment("uuid_generate_v4()"))
+      end
+      """)
+
+    ast_add_column2 =
+      string_to_ast("""
+      alter table("dumplings") do
+        add(:timestamp, :uuid, default: fragment("now()"))
+      end
+      """)
+
+    ast_create_empty_table =
+      string_to_ast("""
+      create table("dumplings") do
+        add(:timestamp, :uuid, default: fragment("now()"))
+      end
+      """)
+
+    assert [column_added_with_default: 2, column_volatile_default: 2] ==
+             AstParser.parse(ast_add_column1)
+
+    assert [column_added_with_default: 2, column_volatile_default: 2] ==
+             AstParser.parse(ast_add_column2)
+
+    assert [] == AstParser.parse(ast_create_empty_table)
+  end
+
   test "detects column added with default using if not exists" do
     ast1 =
       string_to_ast("""

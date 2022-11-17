@@ -101,7 +101,11 @@ defmodule ExcellentMigrations.AstParserTest do
   end
 
   test "detects danger and safety assured" do
-    assert [safety_assured: [:index_not_concurrently], index_not_concurrently: 7] ==
+    assert [
+             safety_assured: [:index_not_concurrently, :blocking_reference_added],
+             blocking_reference_added: 4,
+             index_not_concurrently: 7
+           ] ==
              AstParser.parse(safety_assured_ast())
   end
 
@@ -332,7 +336,7 @@ defmodule ExcellentMigrations.AstParserTest do
 
   defp safety_assured_ast do
     string_to_ast("""
-    @safety_assured [:index_not_concurrently]
+    @safety_assured [:index_not_concurrently, :blocking_reference_added]
     def change do
       alter(table(:recipes)) do
         add(:cookbook_id, references(:cookbooks, on_delete: :delete_all), null: false)

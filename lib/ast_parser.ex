@@ -34,7 +34,38 @@ defmodule ExcellentMigrations.AstParser do
       detect_not_null_added(code_part) ++
       detect_check_constraint(code_part) ++
       detect_records_modified(code_part) ++
-      detect_json_column_added(code_part)
+      detect_json_column_added(code_part) ++
+      detect_blocking_reference_added(code_part)
+  end
+
+  defp detect_blocking_reference_added(
+         {fun_name, _, [_column, {:references, _location, _} = reference, _]}
+       )
+       when fun_name in [:add, :add_if_not_exists] do
+    check_reference(reference)
+  end
+
+  defp detect_blocking_reference_added(
+         {fun_name, _, [_column, {:references, _location, _} = reference]}
+       )
+       when fun_name in [:add, :add_if_not_exists] do
+    check_reference(reference)
+  end
+
+  defp detect_blocking_reference_added(_), do: []
+
+  defp check_reference({:references, location, [_field, opts]}) do
+    validate = Keyword.get(opts, :validate, true)
+
+    if validate do
+      [{:blocking_reference_added, Keyword.get(location, :line)}]
+    else
+      []
+    end
+  end
+
+  defp check_reference({:references, location, _}) do
+    [{:blocking_reference_added, Keyword.get(location, :line)}]
   end
 
   defp detect_index_not_concurrently({fun_name, location, [{operation, _, [_, _]}]})

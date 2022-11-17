@@ -4,7 +4,8 @@ defmodule ExcellentMigrations.RunnerTest do
 
   test "it should be valid migration files" do
     file_paths = [
-      "test/example_migrations/20220726000151_create_index_concurrently_valid.exs"
+      "test/example_migrations/20220726000151_create_index_concurrently_valid.exs",
+      "test/example_migrations/20221116234819_add_non_blocking_foreign_key.exs"
     ]
 
     assert :safe == Runner.check_migrations(migrations_paths: file_paths)
@@ -24,12 +25,18 @@ defmodule ExcellentMigrations.RunnerTest do
       "test/example_migrations/20220725111501_create_unique_index.exs",
       "test/example_migrations/20220726010151_create_index_concurrently_invalid.exs",
       "test/example_migrations/20220804010152_create_index_concurrently_without_disable_ddl_transaction.exs",
-      "test/example_migrations/20220804010153_create_index_concurrently_without_disable_migration_lock.exs"
+      "test/example_migrations/20220804010153_create_index_concurrently_without_disable_migration_lock.exs",
+      "test/example_migrations/20221116230257_add_foreign_key_invalid.exs"
     ]
 
     assert {
              :dangerous,
              [
+               %{
+                 line: 4,
+                 path: "test/example_migrations/20191026103001_create_table_and_index.exs",
+                 type: :blocking_reference_added
+               },
                %{
                  line: 8,
                  path: "test/example_migrations/20191026103001_create_table_and_index.exs",
@@ -132,7 +139,12 @@ defmodule ExcellentMigrations.RunnerTest do
                  line: 15,
                  path:
                    "test/example_migrations/20220804010153_create_index_concurrently_without_disable_migration_lock.exs",
-                 type: :index_concurrently_without_disable_migration_lock
+                 type: :index_concurrently_without_disable_ddl_transaction
+               },
+               %{
+                 line: 6,
+                 path: "test/example_migrations/20221116230257_add_foreign_key_invalid.exs",
+                 type: :blocking_reference_added
                }
              ]
            } == Runner.check_migrations(migrations_paths: file_paths)

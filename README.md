@@ -127,7 +127,7 @@ If Ecto is still configured to read a column in any running instances of the app
 # Without a code change to the Ecto Schema
 
 def change do
-  alter table("posts") do
+  alter table("recipes") do
     remove :no_longer_needed_column
   end
 end
@@ -145,8 +145,8 @@ First deployment:
 ```diff
 # First deploy, in the Ecto schema
 
-defmodule MyApp.Post do
-  schema "posts" do
+defmodule Cookbook.Recipe do
+  schema "recipes" do
 -   column :no_longer_needed_column, :text
   end
 end
@@ -156,7 +156,7 @@ Second deployment:
 
 ```elixir
 def change do
-  alter table("posts") do
+  alter table("recipes") do
     remove :no_longer_needed_column
   end
 end
@@ -178,8 +178,8 @@ Note: This becomes safe in:
 
 ```elixir
 def change do
-  alter table("comments") do
-    add :approved, :boolean, default: false
+  alter table("recipes") do
+    add :favourite, :boolean, default: false
     # This took 10 minutes for 100 million rows with no fkeys,
 
     # Obtained an AccessExclusiveLock on the table, which blocks reads and
@@ -196,8 +196,8 @@ First migration:
 
 ```elixir
 def change do
-  alter table("comments") do
-    add :approved, :boolean
+  alter table("recipes") do
+    add :favourite, :boolean
     # This took 0.27 milliseconds for 100 million rows with no fkeys,
   end
 end
@@ -207,8 +207,8 @@ Second migration:
 
 ```elixir
 def change do
-  alter table("comments") do
-    modify :approved, :boolean, default: false
+  alter table("recipes") do
+    modify :favourite, :boolean, default: false
     # This took 0.28 milliseconds for 100 million rows with no fkeys,
   end
 end
@@ -217,8 +217,8 @@ end
 Schema change to read the new column:
 
 ```diff
-schema "comments" do
-+ field :approved, :boolean, default: false
+schema "recipes" do
++ field :favourite, :boolean, default: false
 end
 ```
 
@@ -234,7 +234,7 @@ Adding volatile default to column:
 
 ```elixir
 def change do
-  alter table(:dumplings) do
+  alter table(:recipes) do
     modify(:identifier, :uuid, default: fragment("uuid_generate_v4()"))
   end
 end
@@ -244,7 +244,7 @@ Adding column with volatile default:
 
 ```elixir
 def change do
-  alter table(:dumplings) do
+  alter table(:recipes) do
     add(:identifier, :uuid, default: fragment("uuid_generate_v4()"))
   end
 end
@@ -270,20 +270,20 @@ Also, running a single query to update data can cause issues for large tables.
 
 
 ```elixir
-defmodule Cookbook.BackfillPosts do
+defmodule Cookbook.BackfillRecipes do
   use Ecto.Migration
   import Ecto.Query
 
   def change do
-    alter table("posts") do
+    alter table("recipes") do
       add :new_data, :text
     end
 
     flush()
 
-    MyApp.MySchema
+    Cookbook.Recipe
     |> where(new_data: nil)
-    |> MyApp.Repo.update_all(set: [new_data: "some data"])
+    |> Cookbook.Repo.update_all(set: [new_data: "some data"])
   end
 end
 
@@ -317,7 +317,7 @@ Safe in MySQL/MariaDB:
 
 ```elixir
 def change do
-  alter table("posts") do
+  alter table("recipes") do
     modify :my_column, :boolean, from: :text
   end
 end
@@ -348,14 +348,14 @@ There is a shortcut: Don't rename the database column, and instead rename the sc
 
 ```elixir
 # In your schema
-schema "posts" do
+schema "recipes" do
   field :summary, :text
 end
 
 
 # In your migration
 def change do
-  rename table("posts"), :title, to: :summary
+  rename table("recipes"), :title, to: :summary
 end
 ```
 
@@ -368,25 +368,21 @@ The time between your migration running and your application getting the new cod
 Rename the field in the schema only, and configure it to point to the database column and keep the database column the same. Ensure all calling code relying on the old field name is also updated to reference the new field name.
 
 ```elixir
-defmodule MyApp.MySchema do
+defmodule Cookbook.Recipe do
   use Ecto.Schema
 
-  schema "weather" do
-    field :temp_lo, :integer
-    field :temp_hi, :integer
-    field :precipitation, :float, source: :prcp
-    field :city, :string
-
-    timestamps(type: :naive_datetime_usec)
+  schema "recipes" do
+    field :author, :string
+    field :preparation_minutes, :integer, source: :prep_min
   end
 end
 ```
 
 ```diff
 ## Update references in other parts of the codebase:
-   my_schema = Repo.get(MySchema, "my_id")
--  my_schema.prcp
-+  my_schema.precipitation
+   recipe = Repo.get(Recipe, "my_id")
+-  recipe.prep_min
++  recipe.preparation_minutes
 ```
 
 **Strategy 2**
@@ -414,7 +410,7 @@ There is a shortcut: rename the schema only, and do not change the underlying da
 
 ```elixir
 def change do
-  rename table("posts"), to: table("articles")
+  rename table("recipes"), to: table("dish_algorithms")
 end
 ```
 
@@ -425,23 +421,19 @@ end
 Rename the schema only and all calling code, and don’t rename the table:
 
 ```diff
-- defmodule MyApp.Weather do
-+ defmodule MyApp.Forecast do
+- defmodule Cookbook.Recipe do
++ defmodule Cookbook.DishAlgorithm do
   use Ecto.Schema
 
-  schema "weather" do
-    field :temp_lo, :integer
-    field :temp_hi, :integer
-    field :precipitation, :float, source: :prcp
-    field :city, :string
-
-    timestamps(type: :naive_datetime_usec)
+  schema "dish_algorithms" do
+    field :author, :string
+    field :preparation_minutes, :integer
   end
 end
 
 # and in calling code:
-- weather = MyApp.Repo.get(MyApp.Weather, “my_id”)
-+ forecast = MyApp.Repo.get(MyApp.Forecast, “my_id”)
+- recipe = Cookbook.Repo.get(Cookbook.Recipe, "my_id")
++ dish_algorithm = Cookbook.Repo.get(Cookbook.DishAlgorithm, "my_id")
 ```
 
 **Strategy 2**
@@ -465,7 +457,7 @@ Adding a check constraint blocks reads and writes to the table in Postgres, and 
 
 ```elixir
 def change do
-  create constraint("products", :price_must_be_positive, check: "price > 0")
+  create constraint("ingredients", :price_must_be_positive, check: "price > 0")
   # Creating the constraint with validate: true (the default when unspecified)
   # will perform a full table scan and acquires a lock preventing updates
 end
@@ -484,7 +476,7 @@ In one migration:
 
 ```elixir
 def change do
-  create constraint("products", :price_must_be_positive, check: "price > 0", validate: false)
+  create constraint("ingredients", :price_must_be_positive, check: "price > 0", validate: false)
   # Setting validate: false will prevent a full table scan, and therefore
   # commits immediately.
 end
@@ -494,7 +486,7 @@ In the next migration:
 
 ```elixir
 def change do
-  execute "ALTER TABLE products VALIDATE CONSTRAINT price_must_be_positive", ""
+  execute "ALTER TABLE ingredients VALIDATE CONSTRAINT price_must_be_positive", ""
   # Acquires SHARE UPDATE EXCLUSIVE lock, which allows updates to continue
 end
 ```
@@ -516,8 +508,8 @@ To avoid the full table scan, we can separate these two operations.
 
 ```elixir
 def change do
-  alter table("products") do
-    modify :active, :boolean, null: false
+  alter table("recipes") do
+    modify :favourite, :boolean, null: false
   end
 end
 ```
@@ -531,7 +523,7 @@ In the first migration:
 ```elixir
 # Deployment 1
 def change do
-  create constraint("products", :active_not_null, check: "active IS NOT NULL", validate: false)
+  create constraint("recipes", :favourite_not_null, check: "favourite IS NOT NULL", validate: false)
 end
 ```
 
@@ -544,7 +536,7 @@ Then, in the next deployment's migration, we'll enforce the constraint on all ro
 ```elixir
 # Deployment 2
 def change do
-  execute "ALTER TABLE products VALIDATE CONSTRAINT active_not_null", ""
+  execute "ALTER TABLE recipes VALIDATE CONSTRAINT favourite_not_null", ""
 end
 ```
 
@@ -561,13 +553,13 @@ If you're using Postgres 12+, you can add the NOT NULL to the column after valid
 # **Postgres 12+ only**
 
 def change do
-  execute "ALTER TABLE products VALIDATE CONSTRAINT active_not_null", ""
+  execute "ALTER TABLE recipes VALIDATE CONSTRAINT favourite_not_null", ""
 
-  alter table("products") do
-    modify :active, :boolean, null: false
+  alter table("recipes") do
+    modify :favourite, :boolean, null: false
   end
 
-  drop constraint("products", :active_not_null)
+  drop constraint("recipes", :favourite_not_null)
 end
 ```
 
@@ -599,9 +591,9 @@ Creating an index will block both reads and writes.
 
 ```elixir
 def change do
-  create index("posts", [:slug])
+  create index("recipes", [:slug])
 
-  # This obtains a ShareLock on "posts" which will block writes to the table
+  # This obtains a ShareLock on "recipes" which will block writes to the table
 end
 ```
 
@@ -614,7 +606,7 @@ With Postgres, instead create the index concurrently which does not block reads.
 @disable_migration_lock true
 
 def change do
-  create index("posts", [:slug], concurrently: true)
+  create index("recipes", [:slug], concurrently: true)
 end
 ```
 
@@ -633,7 +625,7 @@ Concurrently indexes need to set both `@disable_ddl_transaction` and `@disable_m
 ```elixir
 defmodule Cookbook.AddIndex do
   def change do
-    create index(:dumplings, [:recipe_id, :flour_id], concurrently: true)
+    create index(:recipes, [:cookbook_id, :cuisine], concurrently: true)
   end
 end
 ```
@@ -646,7 +638,7 @@ defmodule Cookbook.AddIndex do
   @disable_migration_lock true
 
   def change do
-    create index(:dumplings, [:recipe_id, :flour_id], concurrently: true)
+    create index(:recipes, [:cookbook_id, :cuisine], concurrently: true)
   end
 end
 ```
@@ -661,8 +653,8 @@ Adding a foreign key blocks writes on both tables.
 
 ```elixir
 def change do
-  alter table("posts") do
-    add :group_id, references("groups")
+  alter table("recipes") do
+    add :cookbook_id, references("cookbooks")
   end
 end
 ```
@@ -673,8 +665,8 @@ In the first migration
 
 ```elixir
 def change do
-  alter table("posts") do
-    add :group_id, references("groups", validate: false)
+  alter table("recipes") do
+    add :cookbook_id, references("cookbooks", validate: false)
   end
 end
 ```
@@ -683,7 +675,7 @@ In the second migration
 
 ```elixir
 def change do
-  execute "ALTER TABLE posts VALIDATE CONSTRAINT group_id_fkey", ""
+  execute "ALTER TABLE recipes VALIDATE CONSTRAINT cookbook_id_fkey", ""
 end
 ```
 
@@ -699,7 +691,7 @@ In Postgres, there is no equality operator for the json column type, which can c
 
 ```elixir
 def change do
-  alter table("posts") do
+  alter table("recipes") do
     add :extra_data, :json
   end
 end
@@ -707,11 +699,11 @@ end
 
 **GOOD ✅**
 
-Use jsonb instead. Some say it’s like “json” but “better.”
+Use jsonb instead. Some say it’s like "json" but "**b**etter."
 
 ```elixir
 def change do
-  alter table("posts") do
+  alter table("recipes") do
     add :extra_data, :jsonb
   end
 end
@@ -728,9 +720,7 @@ Adding a non-unique index with more than three columns rarely improves performan
 ```elixir
 defmodule Cookbook.AddIndexOnIngredients do
   def change do
-    alter table(:dumplings) do
-      create index(:ingredients, [:a, :b, :c, :d], concurrently: true)
-    end
+    create index(:recipes, [:a, :b, :c, :d], concurrently: true)
   end
 end
 ```
@@ -742,9 +732,7 @@ Instead, start an index with columns that narrow down the results the most.
 ```elixir
 defmodule Cookbook.AddIndexOnIngredients do
   def change do
-    alter table(:dumplings) do
-      create index(:ingredients, [:b, :d], concurrently: true)
-    end
+    create index(:recipes, [:b, :d], concurrently: true)
   end
 end
 ```
@@ -762,24 +750,28 @@ There are two config comments available:
 * `excellent_migrations:safety-assured-for-next-line <operation_type>`
 * `excellent_migrations:safety-assured-for-this-file <operation_type>`
 
+Ignoring checks for given line:
+
 ```elixir
-defmodule Cookbook.AddTasteToDumplingsWithDefault do
+defmodule Cookbook.AddTypeToRecipesWithDefault do
   def change do
-    alter table(:dumplings) do
+    alter table(:recipes) do
       # excellent_migrations:safety-assured-for-next-line column_added_with_default
-      add(:taste, :string, default: "sweet")
+      add(:type, :string, default: "dessert")
     end
   end
 end
 ```
 
+Ignoring checks for the whole file:
+
 ```elixir
-defmodule Cookbook.AddTasteToDumplingsWithDefault do
+defmodule Cookbook.AddTypeToRecipesWithDefault do
   # excellent_migrations:safety-assured-for-this-file column_added_with_default
 
   def change do
-    alter table(:dumplings) do
-      add(:taste, :string, default: "sweet")
+    alter table(:recipes) do
+      add(:type, :string, default: "dessert")
     end
   end
 end

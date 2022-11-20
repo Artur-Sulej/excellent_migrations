@@ -5,14 +5,14 @@ defmodule ExcellentMigrations.AstParserTest do
   test "detects table renamed" do
     ast =
       string_to_ast(~s"""
-      rename table("dumplings"), to: table("noodles")
+      rename table("recipes"), to: table("dish_algorithms")
       """)
 
     assert [table_renamed: 1] == AstParser.parse(ast)
   end
 
   test "detects column renamed" do
-    ast = string_to_ast("rename table(:dumplings), :filling, to: :stuffing")
+    ast = string_to_ast("rename table(:recipes), :filling, to: :stuffing")
     assert [column_renamed: 1] == AstParser.parse(ast)
   end
 
@@ -22,7 +22,7 @@ defmodule ExcellentMigrations.AstParserTest do
   end
 
   test "detects not null constraint added to column" do
-    ast = string_to_ast("modify :location_id, :integer, null: false")
+    ast = string_to_ast("modify :cookbook_id, :integer, null: false")
     assert [column_type_changed: 1, not_null_added: 1] == AstParser.parse(ast)
   end
 
@@ -58,7 +58,7 @@ defmodule ExcellentMigrations.AstParserTest do
   test "detects check constraint added" do
     ast =
       string_to_ast(~s"""
-      create constraint("dumplings", :price_must_be_positive, check: "price > 0")
+      create constraint("ingredients", :price_must_be_positive, check: "price > 0")
       """)
 
     assert [check_constraint_added: 1] == AstParser.parse(ast)
@@ -109,11 +109,11 @@ defmodule ExcellentMigrations.AstParserTest do
     ast1 =
       string_to_ast("""
       def up do
-        execute("CREATE INDEX idx_dumplings_geog ON dumplings using GIST(Geography(geom));")
+        execute("CREATE INDEX idx_recipes_geog ON recipes using GIST(Geography(geom));")
       end
 
       def down do
-        execute("DROP INDEX idx_dumplings_geog;")
+        execute("DROP INDEX idx_recipes_geog;")
       end
       """)
 
@@ -123,12 +123,12 @@ defmodule ExcellentMigrations.AstParserTest do
   end
 
   test "detects index added not concurrently" do
-    ast_single = string_to_ast("create index(:dumplings, :dough)")
-    ast_single_with_opts = string_to_ast("create index(:dumplings, :dough, unique: true)")
-    ast_multi = string_to_ast("create index(:dumplings, [:dough])")
-    ast_multi_with_opts = string_to_ast("create index(:dumplings, [:dough], unique: true)")
-    ast_conc_false = string_to_ast("create index(:dumplings, [:dough], concurrently: false)")
-    ast_conc_true = string_to_ast("create index(:dumplings, [:dough], concurrently: true)")
+    ast_single = string_to_ast("create index(:recipes, :cuisine)")
+    ast_single_with_opts = string_to_ast("create index(:recipes, :cuisine, unique: true)")
+    ast_multi = string_to_ast("create index(:recipes, [:cuisine])")
+    ast_multi_with_opts = string_to_ast("create index(:recipes, [:cuisine], unique: true)")
+    ast_conc_false = string_to_ast("create index(:recipes, [:cuisine], concurrently: false)")
+    ast_conc_true = string_to_ast("create index(:recipes, [:cuisine], concurrently: true)")
 
     assert [index_not_concurrently: 1] == AstParser.parse(ast_single)
     assert [index_not_concurrently: 1] == AstParser.parse(ast_single_with_opts)
@@ -139,21 +139,21 @@ defmodule ExcellentMigrations.AstParserTest do
   end
 
   test "detects index added not concurrently using if not exists" do
-    ast_single = string_to_ast("create_if_not_exists index(:dumplings, :dough)")
+    ast_single = string_to_ast("create_if_not_exists index(:recipes, :cuisine)")
 
     ast_single_with_opts =
-      string_to_ast("create_if_not_exists index(:dumplings, :dough, unique: true)")
+      string_to_ast("create_if_not_exists index(:recipes, :cuisine, unique: true)")
 
-    ast_multi = string_to_ast("create_if_not_exists index(:dumplings, [:dough])")
+    ast_multi = string_to_ast("create_if_not_exists index(:recipes, [:cuisine])")
 
     ast_multi_with_opts =
-      string_to_ast("create_if_not_exists index(:dumplings, [:dough], unique: true)")
+      string_to_ast("create_if_not_exists index(:recipes, [:cuisine], unique: true)")
 
     ast_conc_false =
-      string_to_ast("create_if_not_exists index(:dumplings, [:dough], concurrently: false)")
+      string_to_ast("create_if_not_exists index(:recipes, [:cuisine], concurrently: false)")
 
     ast_conc_true =
-      string_to_ast("create_if_not_exists index(:dumplings, [:dough], concurrently: true)")
+      string_to_ast("create_if_not_exists index(:recipes, [:cuisine], concurrently: true)")
 
     assert [index_not_concurrently: 1] == AstParser.parse(ast_single)
     assert [index_not_concurrently: 1] == AstParser.parse(ast_single_with_opts)
@@ -164,15 +164,15 @@ defmodule ExcellentMigrations.AstParserTest do
   end
 
   test "detects unique index added not concurrently" do
-    ast_single = string_to_ast("create unique_index(:dumplings, :dough)")
-    ast_single_with_opts = string_to_ast("create unique_index(:dumplings, :dough, unique: true)")
-    ast_multi = string_to_ast("create unique_index(:dumplings, [:dough])")
-    ast_multi_with_opts = string_to_ast("create unique_index(:dumplings, [:dough], unique: true)")
+    ast_single = string_to_ast("create unique_index(:recipes, :cuisine)")
+    ast_single_with_opts = string_to_ast("create unique_index(:recipes, :cuisine, unique: true)")
+    ast_multi = string_to_ast("create unique_index(:recipes, [:cuisine])")
+    ast_multi_with_opts = string_to_ast("create unique_index(:recipes, [:cuisine], unique: true)")
 
     ast_conc_false =
-      string_to_ast("create unique_index(:dumplings, [:dough], concurrently: false)")
+      string_to_ast("create unique_index(:recipes, [:cuisine], concurrently: false)")
 
-    ast_conc_true = string_to_ast("create unique_index(:dumplings, [:dough], concurrently: true)")
+    ast_conc_true = string_to_ast("create unique_index(:recipes, [:cuisine], concurrently: true)")
 
     assert [index_not_concurrently: 1] == AstParser.parse(ast_single)
     assert [index_not_concurrently: 1] == AstParser.parse(ast_single_with_opts)
@@ -183,23 +183,23 @@ defmodule ExcellentMigrations.AstParserTest do
   end
 
   test "detects unique index added not concurrently using if not exists" do
-    ast_single = string_to_ast("create_if_not_exists unique_index(:dumplings, :dough)")
+    ast_single = string_to_ast("create_if_not_exists unique_index(:recipes, :cuisine)")
 
     ast_single_with_opts =
-      string_to_ast("create_if_not_exists unique_index(:dumplings, :dough, unique: true)")
+      string_to_ast("create_if_not_exists unique_index(:recipes, :cuisine, unique: true)")
 
-    ast_multi = string_to_ast("create_if_not_exists unique_index(:dumplings, [:dough])")
+    ast_multi = string_to_ast("create_if_not_exists unique_index(:recipes, [:cuisine])")
 
     ast_multi_with_opts =
-      string_to_ast("create_if_not_exists unique_index(:dumplings, [:dough], unique: true)")
+      string_to_ast("create_if_not_exists unique_index(:recipes, [:cuisine], unique: true)")
 
     ast_conc_false =
       string_to_ast(
-        "create_if_not_exists unique_index(:dumplings, [:dough], concurrently: false)"
+        "create_if_not_exists unique_index(:recipes, [:cuisine], concurrently: false)"
       )
 
     ast_conc_true =
-      string_to_ast("create_if_not_exists unique_index(:dumplings, [:dough], concurrently: true)")
+      string_to_ast("create_if_not_exists unique_index(:recipes, [:cuisine], concurrently: true)")
 
     assert [index_not_concurrently: 1] == AstParser.parse(ast_single)
     assert [index_not_concurrently: 1] == AstParser.parse(ast_single_with_opts)
@@ -238,14 +238,14 @@ defmodule ExcellentMigrations.AstParserTest do
   test "detects column added with default" do
     alter_table =
       string_to_ast("""
-      alter table("dumplings") do
+      alter table("recipes") do
         add(:taste, :string, default: "sweet")
       end
       """)
 
     create_table =
       string_to_ast("""
-      create table("dumplings") do
+      create table("recipes") do
         add(:taste, :string, default: "sweet")
       end
       """)
@@ -257,7 +257,7 @@ defmodule ExcellentMigrations.AstParserTest do
   test "detects column default changed to volatile" do
     ast =
       string_to_ast("""
-      alter table("dumplings") do
+      alter table("recipes") do
         modify(:boiling_minutes, :integer, default: fragment("random()"))
       end
       """)
@@ -268,21 +268,21 @@ defmodule ExcellentMigrations.AstParserTest do
   test "detects column added with volatile default" do
     ast_add_column1 =
       string_to_ast("""
-      alter table("dumplings") do
+      alter table("recipes") do
         add_if_not_exists(:identifier, :uuid, default: fragment("uuid_generate_v4()"))
       end
       """)
 
     ast_add_column2 =
       string_to_ast("""
-      alter table("dumplings") do
+      alter table("recipes") do
         add(:timestamp, :uuid, default: fragment("now()"))
       end
       """)
 
     ast_create_empty_table =
       string_to_ast("""
-      create table("dumplings") do
+      create table("recipes") do
         add(:timestamp, :uuid, default: fragment("now()"))
       end
       """)
@@ -299,7 +299,7 @@ defmodule ExcellentMigrations.AstParserTest do
   test "detects column added with default using if not exists" do
     ast =
       string_to_ast("""
-      alter table("dumplings") do
+      alter table("recipes") do
         add_if_not_exists(:taste, :string, default: "sweet")
       end
       """)
@@ -334,11 +334,11 @@ defmodule ExcellentMigrations.AstParserTest do
     string_to_ast("""
     @safety_assured [:index_not_concurrently]
     def change do
-      alter(table(:dumplings)) do
-        add(:recipe_id, references(:recipes, on_delete: :delete_all), null: false)
+      alter(table(:recipes)) do
+        add(:cookbook_id, references(:cookbooks, on_delete: :delete_all), null: false)
       end
 
-      create(index(:dumplings, [:recipe_id, :flour_id], unique: true))
+      create(index(:recipes, [:cookbook_id, :cuisine], unique: true))
     end
     """)
   end

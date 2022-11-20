@@ -109,43 +109,43 @@ defmodule ExcellentMigrations.AstParser do
 
   defp detect_column_renamed(_), do: []
 
-  def detect_column_added_with_default({:alter, _, [{:table, _, _}, _]} = ast) do
+  defp detect_column_added_with_default({:alter, _, [{:table, _, _}, _]} = ast) do
     traverse_ast(ast, &detect_column_added_with_default_inner/1)
   end
 
-  def detect_column_added_with_default(_), do: []
+  defp detect_column_added_with_default(_), do: []
 
-  def detect_column_volatile_default(
-        {:alter, _,
-         [{:table, _, _}, [do: {fun_name, location, [_, _, [default: {:fragment, _, _}]]}]]}
-      )
-      when fun_name in [:add, :add_if_not_exists] do
+  defp detect_column_volatile_default(
+         {:alter, _,
+          [{:table, _, _}, [do: {fun_name, location, [_, _, [default: {:fragment, _, _}]]}]]}
+       )
+       when fun_name in [:add, :add_if_not_exists] do
     [{:column_volatile_default, Keyword.get(location, :line)}]
   end
 
-  def detect_column_volatile_default({:modify, location, [_, _, [default: {:fragment, _, _}]]}) do
+  defp detect_column_volatile_default({:modify, location, [_, _, [default: {:fragment, _, _}]]}) do
     [{:column_volatile_default, Keyword.get(location, :line)}]
   end
 
-  def detect_column_volatile_default(_), do: []
+  defp detect_column_volatile_default(_), do: []
 
-  def detect_column_modified(
-        {:modify, location, [_, {:references, _, _}, [from: {:references, _, _}]]}
-      ) do
+  defp detect_column_modified(
+         {:modify, location, [_, {:references, _, _}, [from: {:references, _, _}]]}
+       ) do
     [{:column_reference_added, Keyword.get(location, :line)}]
   end
 
-  def detect_column_modified({:modify, location, [_, {:references, _, _}]}) do
+  defp detect_column_modified({:modify, location, [_, {:references, _, _}]}) do
     [{:column_reference_added, Keyword.get(location, :line)}]
   end
 
-  def detect_column_modified({:modify, location, _}) do
+  defp detect_column_modified({:modify, location, _}) do
     [{:column_type_changed, Keyword.get(location, :line)}]
   end
 
-  def detect_column_modified(_), do: []
+  defp detect_column_modified(_), do: []
 
-  def detect_not_null_added({:modify, location, [_, _, options]}) do
+  defp detect_not_null_added({:modify, location, [_, _, options]}) do
     if Keyword.get(options, :null) == false do
       [{:not_null_added, Keyword.get(location, :line)}]
     else
@@ -153,22 +153,22 @@ defmodule ExcellentMigrations.AstParser do
     end
   end
 
-  def detect_not_null_added(_), do: []
+  defp detect_not_null_added(_), do: []
 
-  def detect_json_column_added({fun_name, location, [_, :json | _]})
-      when fun_name in [:add, :add_if_not_exists] do
+  defp detect_json_column_added({fun_name, location, [_, :json | _]})
+       when fun_name in [:add, :add_if_not_exists] do
     [{:json_column_added, Keyword.get(location, :line)}]
   end
 
-  def detect_json_column_added(_), do: []
+  defp detect_json_column_added(_), do: []
 
-  def detect_check_constraint({:create, location, [{:constraint, _, _}]}) do
+  defp detect_check_constraint({:create, location, [{:constraint, _, _}]}) do
     [{:check_constraint_added, Keyword.get(location, :line)}]
   end
 
-  def detect_check_constraint(_), do: []
+  defp detect_check_constraint(_), do: []
 
-  def detect_records_modified({:., location, [{:__aliases__, _, modules}, operation]}) do
+  defp detect_records_modified({:., location, [{:__aliases__, _, modules}, operation]}) do
     if Enum.member?(modules, :Repo) do
       danger =
         operation
@@ -184,7 +184,7 @@ defmodule ExcellentMigrations.AstParser do
     end
   end
 
-  def detect_records_modified(_), do: []
+  defp detect_records_modified(_), do: []
 
   defp detect_column_added_with_default_inner({fun_name, location, [_, _, options]})
        when fun_name in [:add, :add_if_not_exists] do

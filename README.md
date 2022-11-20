@@ -816,12 +816,12 @@ last migration in `start_after` in config:
 config :excellent_migrations, start_after: "20191026080101"
 ```
 
-## Similar tools
+## Similar tools & resources
 
 * https://github.com/ankane/strong_migrations (Ruby)
 * https://github.com/rrrene/credo (Elixir)
-
-Special thanks to https://github.com/fly-apps/safe-ecto-migrations for unsafe actions explanation and recipes.
+* https://github.com/fly-apps/safe-ecto-migrations – Special thanks for unsafe actions explanation and recipes.
+* https://www.postgresql.org/docs/current/sql-altertable.html#Notes
 
 ## Contributing
 

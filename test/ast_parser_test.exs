@@ -106,7 +106,17 @@ defmodule ExcellentMigrations.AstParserTest do
   end
 
   test "detects raw SQL executed" do
-    ast1 = raw_sql_executed_ast()
+    ast1 =
+      string_to_ast("""
+      def up do
+        execute("CREATE INDEX idx_dumplings_geog ON dumplings using GIST(Geography(geom));")
+      end
+
+      def down do
+        execute("DROP INDEX idx_dumplings_geog;")
+      end
+      """)
+
     ast2 = string_to_ast(~s(execute "SQL up", "SQL down"))
     assert [raw_sql_executed: 2, raw_sql_executed: 6] == AstParser.parse(ast1)
     assert [raw_sql_executed: 1] == AstParser.parse(ast2)
@@ -226,10 +236,22 @@ defmodule ExcellentMigrations.AstParserTest do
   end
 
   test "detects column added with default" do
-    assert [column_added_with_default: 2] ==
-             AstParser.parse(add_column_with_default_in_existing_table_ast())
+    alter_table =
+      string_to_ast("""
+      alter table("dumplings") do
+        add(:taste, :string, default: "sweet")
+      end
+      """)
 
-    assert [] == AstParser.parse(add_column_with_default_in_new_table_ast())
+    create_table =
+      string_to_ast("""
+      create table("dumplings") do
+        add(:taste, :string, default: "sweet")
+      end
+      """)
+
+    assert [column_added_with_default: 2] == AstParser.parse(alter_table)
+    assert [] == AstParser.parse(create_table)
   end
 
   test "detects column default changed to volatile" do
@@ -275,14 +297,14 @@ defmodule ExcellentMigrations.AstParserTest do
   end
 
   test "detects column added with default using if not exists" do
-    ast1 =
+    ast =
       string_to_ast("""
       alter table("dumplings") do
         add_if_not_exists(:taste, :string, default: "sweet")
       end
       """)
 
-    assert [column_added_with_default: 2] == AstParser.parse(ast1)
+    assert [column_added_with_default: 2] == AstParser.parse(ast)
   end
 
   test "detects column removed" do
@@ -306,34 +328,6 @@ defmodule ExcellentMigrations.AstParserTest do
     assert [table_dropped: 1] == AstParser.parse(ast2)
     assert [table_dropped: 1] == AstParser.parse(ast3)
     assert [table_dropped: 1] == AstParser.parse(ast4)
-  end
-
-  defp add_column_with_default_in_existing_table_ast do
-    string_to_ast("""
-    alter table("dumplings") do
-      add(:taste, :string, default: "sweet")
-    end
-    """)
-  end
-
-  defp add_column_with_default_in_new_table_ast do
-    string_to_ast("""
-    create table("dumplings") do
-      add(:taste, :string, default: "sweet")
-    end
-    """)
-  end
-
-  defp raw_sql_executed_ast do
-    string_to_ast("""
-    def up do
-      execute("CREATE INDEX idx_dumplings_geog ON dumplings using GIST(Geography(geom));")
-    end
-
-    def down do
-      execute("DROP INDEX idx_dumplings_geog;")
-    end
-    """)
   end
 
   defp safety_assured_ast do

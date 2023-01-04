@@ -16,7 +16,7 @@ defmodule Mix.Tasks.ExcellentMigrations.Migrate do
           |> Logger.error()
         end)
 
-        System.stop(1)
+        Mix.raise("Dangerous operations detected in migrations!")
     end
   end
 end

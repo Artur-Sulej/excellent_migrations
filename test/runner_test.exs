@@ -126,13 +126,13 @@ defmodule ExcellentMigrations.RunnerTest do
                  line: 15,
                  path:
                    "test/example_migrations/20220804010152_create_index_concurrently_without_disable_ddl_transaction.exs",
-                 type: :index_concurrently_without_disable_migration_lock
+                 type: :index_concurrently_without_disable_ddl_transaction
                },
                %{
                  line: 15,
                  path:
                    "test/example_migrations/20220804010153_create_index_concurrently_without_disable_migration_lock.exs",
-                 type: :index_concurrently_without_disable_ddl_transaction
+                 type: :index_concurrently_without_disable_migration_lock
                }
              ]
            } == Runner.check_migrations(migrations_paths: file_paths)

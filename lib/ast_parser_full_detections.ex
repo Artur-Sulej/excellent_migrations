@@ -34,10 +34,10 @@ defmodule ExcellentMigrations.AstParserFullDetections do
         []
 
       {_, %{lock_disabled?: true, ddl_transaction_disabled?: false, line: line}} ->
-        [{:index_concurrently_without_disable_migration_lock, line}]
+        [{:index_concurrently_without_disable_ddl_transaction, line}]
 
       {_, %{lock_disabled?: false, ddl_transaction_disabled?: true, line: line}} ->
-        [{:index_concurrently_without_disable_ddl_transaction, line}]
+        [{:index_concurrently_without_disable_migration_lock, line}]
 
       {_, %{line: line}} ->
         [

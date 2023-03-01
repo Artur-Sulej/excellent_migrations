@@ -14,16 +14,12 @@ defmodule ExcellentMigrations.AstParser.IndexNotConcurrently do
       ...> |> ExcellentMigrations.AstParser.IndexNotConcurrently.detect()
       [index_not_concurrently: 1]
   """
-  def detect(ast) do
-    do_detect(ast)
-  end
-
-  defp do_detect({fun_name, location, [{operation, _, [_, _]}]})
+  def detect({fun_name, location, [{operation, _, [_, _]}]})
        when fun_name in @index_functions and operation in @index_types do
     [{:index_not_concurrently, Keyword.get(location, :line)}]
   end
 
-  defp do_detect({fun_name, location, [{operation, _, [_, _, options]}]})
+  def detect({fun_name, location, [{operation, _, [_, _, options]}]})
        when fun_name in @index_functions and operation in @index_types do
     case Keyword.get(options, :concurrently) do
       true -> []
@@ -31,5 +27,5 @@ defmodule ExcellentMigrations.AstParser.IndexNotConcurrently do
     end
   end
 
-  defp do_detect(_), do: []
+  def detect(_), do: []
 end

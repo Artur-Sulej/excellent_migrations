@@ -7,20 +7,18 @@ defmodule ExcellentMigrations.AstParser.IndexNotConcurrently do
   @doc ~S"""
   Detects index added not concurrently
 
-  ## Examples
-
       iex> "create index(:recipes, :cuisine)"
       ...> |> Code.string_to_quoted!()
       ...> |> ExcellentMigrations.AstParser.IndexNotConcurrently.detect()
       [index_not_concurrently: 1]
   """
   def detect({fun_name, location, [{operation, _, [_, _]}]})
-       when fun_name in @index_functions and operation in @index_types do
+      when fun_name in @index_functions and operation in @index_types do
     [{:index_not_concurrently, Keyword.get(location, :line)}]
   end
 
   def detect({fun_name, location, [{operation, _, [_, _, options]}]})
-       when fun_name in @index_functions and operation in @index_types do
+      when fun_name in @index_functions and operation in @index_types do
     case Keyword.get(options, :concurrently) do
       true -> []
       _ -> [{:index_not_concurrently, Keyword.get(location, :line)}]

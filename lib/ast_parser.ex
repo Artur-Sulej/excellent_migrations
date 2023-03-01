@@ -1,9 +1,9 @@
 defmodule ExcellentMigrations.AstParser do
   @moduledoc false
-  @max_columns_for_index 3
 
-  @index_functions [:create, :create_if_not_exists, :drop, :drop_if_exists]
-  @index_types [:index, :unique_index]
+  alias ExcellentMigrations.AstParser.IndexNotConcurrently
+
+  @max_columns_for_index 3
 
   def parse(ast) do
     traverse_ast(ast, &detect_dangers/1)
@@ -20,7 +20,7 @@ defmodule ExcellentMigrations.AstParser do
   end
 
   defp detect_dangers(code_part) do
-    detect_index_not_concurrently(code_part) ++
+    IndexNotConcurrently.detect(code_part) ++
       detect_many_columns_index(code_part) ++
       detect_raw_sql(code_part) ++
       detect_safety_assured(code_part) ++
@@ -36,21 +36,6 @@ defmodule ExcellentMigrations.AstParser do
       detect_records_modified(code_part) ++
       detect_json_column_added(code_part)
   end
-
-  defp detect_index_not_concurrently({fun_name, location, [{operation, _, [_, _]}]})
-       when fun_name in @index_functions and operation in @index_types do
-    [{:index_not_concurrently, Keyword.get(location, :line)}]
-  end
-
-  defp detect_index_not_concurrently({fun_name, location, [{operation, _, [_, _, options]}]})
-       when fun_name in @index_functions and operation in @index_types do
-    case Keyword.get(options, :concurrently) do
-      true -> []
-      _ -> [{:index_not_concurrently, Keyword.get(location, :line)}]
-    end
-  end
-
-  defp detect_index_not_concurrently(_), do: []
 
   defp detect_many_columns_index({fun_name, location, [{:index, _, [_, columns, options]}]})
        when fun_name in [:create, :create_if_not_exists] and is_list(columns) do

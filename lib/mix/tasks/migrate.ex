@@ -16,7 +16,7 @@ defmodule Mix.Tasks.ExcellentMigrations.Migrate do
           |> Logger.error()
         end)
 
-        System.stop(1)
+        exit({:shutdown, 1})
     end
   end
 end

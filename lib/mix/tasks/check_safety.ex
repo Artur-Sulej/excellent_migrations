@@ -24,7 +24,7 @@ defmodule Mix.Tasks.ExcellentMigrations.CheckSafety do
           |> Logger.warn()
         end)
 
-        System.stop(1)
+        exit({:shutdown, 1})
     end
   end
 end

@@ -10,9 +10,12 @@ defmodule ExcellentMigrations.FilesFinder do
   end
 
   def relevant_file?(path, start_after) do
+    migrations_paths =
+      Application.get_env(:excellent_migrations, :migrations_paths, ["migrations/"])
+
     !String.starts_with?(path, ["deps/", "_build/"]) &&
       !String.contains?(path, ["/deps/", "/_build/"]) &&
-      String.contains?(path, "migrations/") &&
+      String.contains?(path, migrations_paths) &&
       migration_timestamp(path) > start_after
   end
 

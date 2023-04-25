@@ -16,6 +16,17 @@ defmodule ExcellentMigrations.CredoCheck.MigrationsSafetyTest do
     |> assert_issues()
   end
 
+  test "it should report code that is defined in user specified directory" do
+    Application.put_env(:excellent_migrations, :migrations_paths, [
+      "migrations/",
+      "migrations_storage/"
+    ])
+
+    "test/migrations_storage/20230425200039_execute_raw_sql.exs"
+    |> run_check()
+    |> assert_issues()
+  end
+
   defp run_check(path) do
     path
     |> File.read!()

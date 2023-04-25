@@ -1,7 +1,7 @@
 # Excellent Migrations
 
 [![CI Tests](https://github.com/artur-sulej/excellent_migrations/workflows/Tests/badge.svg)](https://github.com/artur-sulej/excellent_migrations/actions?query=branch%3Amaster)
-[![Module Version](https://img.shields.io/hexpm/v/exc/llent_migrations.svg)](https://hex.pm/packages/excellent_migrations)
+[![Module Version](https://img.shields.io/hexpm/v/excellent_migrations.svg)](https://hex.pm/packages/excellent_migrations)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/excellent_migrations/)
 [![Total Download](https://img.shields.io/hexpm/dt/excellent_migrations.svg)](https://hex.pm/packages/excellent_migrations)
 [![License](https://img.shields.io/hexpm/l/excellent_migrations.svg)](https://github.com/artur-sulej/excellent_migrations/blob/master/LICENSE.md)
@@ -823,6 +823,8 @@ You can specify paths where your migrations are stored, set `migrations_paths` i
 ```elixir
 config :excellent_migrations, migrations_paths: ["migrations/", "migrations_storage/"]
 ```
+
+The default value for `migrations_paths` is `"migrations/"`
 
 ## Similar tools & resources
 

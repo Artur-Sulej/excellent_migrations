@@ -816,6 +816,14 @@ last migration in `start_after` in config:
 config :excellent_migrations, start_after: "20191026080101"
 ```
 
+## Existing migrations
+
+You can specify paths where your migrations are stored, set `migrations_paths` in config:
+
+```elixir
+config :excellent_migrations, start_after: :migrations_paths, ["migrations/", "migrations_storage/"]
+```
+
 ## Similar tools & resources
 
 * https://github.com/ankane/strong_migrations (Ruby)

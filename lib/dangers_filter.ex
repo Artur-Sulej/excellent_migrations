@@ -18,7 +18,7 @@ defmodule ExcellentMigrations.DangersFilter do
       |> Enum.uniq()
 
     unless Enum.empty?(safety_assured_types) do
-      Logger.warn(
+      Logger.warning(
         "Using module attribute @safety_assured is deprecated. Use config comments instead."
       )
     end

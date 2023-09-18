@@ -32,11 +32,12 @@ defmodule ExcellentMigrations.RunnerTest do
     assert {
              :dangerous,
              [
-               %{
+              %{
                  line: 4,
                  path: "test/example_migrations/20191026103001_create_table_and_index.exs",
-                 type: :blocking_reference_added
+                 type: :column_reference_added
                },
+
                %{
                  line: 8,
                  path: "test/example_migrations/20191026103001_create_table_and_index.exs",
@@ -139,12 +140,12 @@ defmodule ExcellentMigrations.RunnerTest do
                  line: 15,
                  path:
                    "test/example_migrations/20220804010153_create_index_concurrently_without_disable_migration_lock.exs",
-                 type: :index_concurrently_without_disable_ddl_transaction
+                 type: :index_concurrently_without_disable_migration_lock
                },
                %{
                  line: 6,
                  path: "test/example_migrations/20221116230257_add_foreign_key_invalid.exs",
-                 type: :blocking_reference_added
+                 type: :column_reference_added
                }
              ]
            } == Runner.check_migrations(migrations_paths: file_paths)

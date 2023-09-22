@@ -138,6 +138,26 @@ defmodule ExcellentMigrations.RunnerTest do
            } == Runner.check_migrations(migrations_paths: file_paths)
   end
 
+  test "finds non-concurrent indices in unconventional structures" do
+    file_path = "test/example_migrations/20230922211058_create_index_unconventional_structure.exs"
+
+    assert {
+             :dangerous,
+             [
+               %{
+                 line: 3,
+                 path: file_path,
+                 type: :index_not_concurrently
+               },
+               %{
+                 line: 6,
+                 path: file_path,
+                 type: :index_not_concurrently
+               }
+             ]
+           } == Runner.check_migrations(migrations_paths: [file_path])
+  end
+
   test "no dangerous operations" do
     file_paths = [
       "test/example_migrations/20191026103003_create_table.exs",

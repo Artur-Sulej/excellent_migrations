@@ -2,7 +2,7 @@ defmodule ExcellentMigrations.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/artur-sulej/excellent_migrations"
-  @version "0.1.6"
+  @version "0.1.7"
 
   def project do
     [

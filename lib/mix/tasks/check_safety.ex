@@ -21,7 +21,7 @@ defmodule Mix.Tasks.ExcellentMigrations.CheckSafety do
         Enum.each(dangers, fn danger ->
           danger
           |> ExcellentMigrations.MessageGenerator.build_message()
-          |> Logger.warn()
+          |> Logger.warning()
         end)
 
         exit({:shutdown, 1})

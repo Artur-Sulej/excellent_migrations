@@ -30,7 +30,7 @@ defmodule ExcellentMigrations.AstParser do
       detect_column_renamed(code_part) ++
       detect_column_added_with_default(code_part) ++
       detect_column_volatile_default(code_part) ++
-      detect_column_modified(code_part) ++
+      detect_column_reference_added(code_part) ++
       detect_not_null_added(code_part) ++
       detect_check_constraint(code_part) ++
       detect_records_modified(code_part) ++
@@ -129,21 +129,33 @@ defmodule ExcellentMigrations.AstParser do
 
   defp detect_column_volatile_default(_), do: []
 
-  defp detect_column_modified(
+  defp detect_column_reference_added(
          {:modify, location, [_, {:references, _, _}, [from: {:references, _, _}]]}
        ) do
     [{:column_reference_added, Keyword.get(location, :line)}]
   end
 
-  defp detect_column_modified({:modify, location, [_, {:references, _, _}]}) do
+  defp detect_column_reference_added(
+         {fun_name, location, [_, {:references, _, [_column, options]}]}
+       )
+       when fun_name in [:add, :modify] do
+    if Keyword.get(options, :validate) == false do
+      []
+    else
+      [{:column_reference_added, Keyword.get(location, :line)}]
+    end
+  end
+
+  defp detect_column_reference_added({fun_name, location, [_, {:references, _, _}]})
+       when fun_name in [:add, :modify] do
     [{:column_reference_added, Keyword.get(location, :line)}]
   end
 
-  defp detect_column_modified({:modify, location, _}) do
+  defp detect_column_reference_added({:modify, location, _}) do
     [{:column_type_changed, Keyword.get(location, :line)}]
   end
 
-  defp detect_column_modified(_), do: []
+  defp detect_column_reference_added(_), do: []
 
   defp detect_not_null_added({:modify, location, [_, _, options]}) do
     if Keyword.get(options, :null) == false do

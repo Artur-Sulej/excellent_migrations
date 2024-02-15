@@ -40,7 +40,7 @@ defmodule ExcellentMigrations.AstParserTest do
     assert [] == AstParser.parse(ast2)
   end
 
-  test "detects reference added" do
+  test "detects reference added on modify" do
     ast1 =
       string_to_ast("modify(:ingredient_id, references(:ingredients), from: references(:stuff))")
 
@@ -53,6 +53,34 @@ defmodule ExcellentMigrations.AstParserTest do
 
     assert [column_reference_added: 1] == AstParser.parse(ast1)
     assert [column_reference_added: 2] == AstParser.parse(ast2)
+  end
+
+  test "detects reference added on add without [validate: false] option" do
+    ast_bad_1 =
+      string_to_ast("""
+      alter table(:recipes) do
+        add :ingredient_id, references(:ingredients)
+      end
+      """)
+
+    ast_bad_2 =
+      string_to_ast("""
+      alter table(:recipes) do
+        add :ingredient_id, references(:ingredients, on_delete: :delete_all)
+      end
+      """)
+
+    assert [{:column_reference_added, 2}] == AstParser.parse(ast_bad_1)
+    assert [{:column_reference_added, 2}] == AstParser.parse(ast_bad_2)
+
+    ast_good =
+      string_to_ast("""
+      alter table(:recipes) do
+        add :ingredient_id, references(:ingredients, validate: false)
+      end
+      """)
+
+    assert [] == AstParser.parse(ast_good)
   end
 
   test "detects check constraint added" do

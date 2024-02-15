@@ -5,6 +5,8 @@ defmodule ExcellentMigrations.AstParser do
   @index_functions [:create, :create_if_not_exists, :drop, :drop_if_exists]
   @index_types [:index, :unique_index]
 
+  import AstMacro
+
   def parse(ast) do
     traverse_ast(ast, &detect_dangers/1)
   end
@@ -91,26 +93,44 @@ defmodule ExcellentMigrations.AstParser do
 
   defp detect_table_dropped(_), do: []
 
-  defp detect_raw_sql({:execute, location, _}) do
-    [{:raw_sql_executed, Keyword.get(location, :line)}]
+  defp detect_raw_sql(
+         ast do
+           execute(_)
+         end
+       ) do
+    [{:raw_sql_executed, line0}]
   end
 
   defp detect_raw_sql(_), do: []
 
-  defp detect_table_renamed({:rename, location, [{:table, _, _}, [to: {:table, _, _}]]}) do
-    [{:table_renamed, Keyword.get(location, :line)}]
+  defp detect_table_renamed(
+         ast do
+           rename(table(_), to: table(_))
+         end
+       ) do
+    [{:table_renamed, line0}]
   end
 
   defp detect_table_renamed(_), do: []
 
-  defp detect_column_renamed({:rename, location, [{:table, _, _}, _, [to: _]]}) do
-    [{:column_renamed, Keyword.get(location, :line)}]
+  defp detect_column_renamed(
+         ast do
+           rename(table(_), _, to: _)
+         end
+       ) do
+    [{:column_renamed, line0}]
   end
 
   defp detect_column_renamed(_), do: []
 
-  defp detect_column_added_with_default({:alter, _, [{:table, _, _}, _]} = ast) do
-    traverse_ast(ast, &detect_column_added_with_default_inner/1)
+  defp detect_column_added_with_default(
+         ast do
+           alter table(_) do
+             _
+           end
+         end = ast_code
+       ) do
+    traverse_ast(ast_code, &detect_column_added_with_default_inner/1)
   end
 
   defp detect_column_added_with_default(_), do: []

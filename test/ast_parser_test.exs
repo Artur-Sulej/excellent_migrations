@@ -101,7 +101,11 @@ defmodule ExcellentMigrations.AstParserTest do
   end
 
   test "detects danger and safety assured" do
-    assert [safety_assured: [:index_not_concurrently], index_not_concurrently: 7] ==
+    assert [
+             safety_assured: [:index_not_concurrently],
+             column_reference_added: 4,
+             index_not_concurrently: 7
+           ] ==
              AstParser.parse(safety_assured_ast())
   end
 

@@ -5,6 +5,8 @@ defmodule ExcellentMigrations.AstParser do
   @index_functions [:create, :create_if_not_exists, :drop, :drop_if_exists]
   @index_types [:index, :unique_index]
 
+  defguardp is_column_added(value) when value in [:add, :add_if_not_exists]
+
   def parse(ast) do
     traverse_ast(ast, &detect_dangers/1)
   end
@@ -143,7 +145,33 @@ defmodule ExcellentMigrations.AstParser do
     [{:column_type_changed, Keyword.get(location, :line)}]
   end
 
+  defp detect_column_modified(
+         {fun_name, _, [_column, {:references, _location, _} = reference, _]}
+       )
+       when is_column_added(fun_name) do
+    check_reference(reference)
+  end
+
+  defp detect_column_modified({fun_name, _, [_column, {:references, _location, _} = reference]})
+       when is_column_added(fun_name) do
+    check_reference(reference)
+  end
+
   defp detect_column_modified(_), do: []
+
+  defp check_reference({:references, location, [_field, opts]}) do
+    validate = Keyword.get(opts, :validate, true)
+
+    if validate do
+      [{:column_reference_added, Keyword.get(location, :line)}]
+    else
+      []
+    end
+  end
+
+  defp check_reference({:references, location, _}) do
+    [{:column_reference_added, Keyword.get(location, :line)}]
+  end
 
   defp detect_not_null_added({:modify, location, [_, _, options]}) do
     if Keyword.get(options, :null) == false do

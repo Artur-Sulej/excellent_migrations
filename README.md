@@ -555,9 +555,7 @@ If you're using Postgres 12+, you can add the NOT NULL to the column after valid
 def change do
   execute "ALTER TABLE recipes VALIDATE CONSTRAINT favourite_not_null", ""
 
-  alter table("recipes") do
-    modify :favourite, :boolean, null: false
-  end
+  execute "ALTER TABLE recipes ALTER COLUMN favourite SET NOT NULL", "ALTER TABLE recipes ALTER COLUMN favourite DROP NOT NULL"
 
   drop constraint("recipes", :favourite_not_null)
 end

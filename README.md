@@ -40,22 +40,31 @@ There are multiple ways to integrate with Excellent Migrations.
 
 Excellent Migrations provide custom, ready-to-use check for [Credo](https://github.com/rrrene/credo).
 
-Add `ExcellentMigrations.CredoCheck.MigrationsSafety` to your `.credo` file:
+Add `ExcellentMigrations.CredoCheck.MigrationsSafety` and include your migrations folder in your
+`.credo.exs` file:
 
 ```elixir
 %{
   configs: [
     %{
+      files: %{
+        included: [
+          "priv/repo/migrations", # <-- add this
+          # …
+        ]
+      }
       # …
-      checks: [
-        # …
-        {ExcellentMigrations.CredoCheck.MigrationsSafety, []}
-      ]
+      checks: %{
+        enabled: [
+          {ExcellentMigrations.CredoCheck.MigrationsSafety, []},  # <-- and this
+          # …
+        ]
+      }
     }
   ]
 }
-
 ```
+
 
 Example credo warnings:
 

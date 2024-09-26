@@ -34,7 +34,8 @@ defmodule ExcellentMigrations.AstParser do
       detect_not_null_added(code_part) ++
       detect_check_constraint(code_part) ++
       detect_records_modified(code_part) ++
-      detect_json_column_added(code_part)
+      detect_json_column_added(code_part) ++
+      detect_column_added_generated_stored(code_part)
   end
 
   defp detect_index_not_concurrently({fun_name, location, [{operation, _, [_, _]}]})
@@ -114,6 +115,24 @@ defmodule ExcellentMigrations.AstParser do
   end
 
   defp detect_column_added_with_default(_), do: []
+
+  defp detect_column_added_generated_stored(
+         {:alter, _,
+          [
+            {:table, _, _},
+            [
+              do: {:add, location, [_, _, [generated: "ALWAYS AS (id::text) STORED" = text]]}
+            ]
+          ]}
+       ) do
+    if String.downcase(text) =~ "stored" do
+      [{:column_added_generated_stored, Keyword.get(location, :line)}]
+    else
+      []
+    end
+  end
+
+  defp detect_column_added_generated_stored(_), do: []
 
   defp detect_column_volatile_default(
          {:alter, _,

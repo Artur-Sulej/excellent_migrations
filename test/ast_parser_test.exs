@@ -358,6 +358,18 @@ defmodule ExcellentMigrations.AstParserTest do
     assert [table_dropped: 1] == AstParser.parse(ast4)
   end
 
+  test "detects index dropped" do
+    ast1 = string_to_ast("drop index(:recipes, [:cuisine], concurrently: true)")
+    ast2 = string_to_ast("drop_if_exists index(:recipes, [:cuisine], concurrently: true)")
+    ast3 = string_to_ast("drop unique_index(:recipes, [:cuisine], concurrently: true)")
+    ast4 = string_to_ast("drop_if_exists unique_index(:recipes, [:cuisine], concurrently: true)")
+
+    assert [index_dropped: 1] == AstParser.parse(ast1)
+    assert [index_dropped: 1] == AstParser.parse(ast2)
+    assert [index_dropped: 1] == AstParser.parse(ast3)
+    assert [index_dropped: 1] == AstParser.parse(ast4)
+  end
+
   defp safety_assured_ast do
     string_to_ast("""
     @safety_assured [:index_not_concurrently]

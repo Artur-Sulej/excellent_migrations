@@ -34,7 +34,8 @@ defmodule ExcellentMigrations.AstParser do
       detect_not_null_added(code_part) ++
       detect_check_constraint(code_part) ++
       detect_records_modified(code_part) ++
-      detect_json_column_added(code_part)
+      detect_json_column_added(code_part) ++
+      detect_index_dropped(code_part)
   end
 
   defp detect_index_not_concurrently({fun_name, location, [{operation, _, [_, _]}]})
@@ -214,4 +215,11 @@ defmodule ExcellentMigrations.AstParser do
   end
 
   defp detect_safety_assured(_), do: []
+
+  defp detect_index_dropped({fun_name, location, [{operation, _, _}]})
+       when fun_name in [:drop, :drop_if_exists] and operation in @index_types do
+    [{:index_dropped, Keyword.get(location, :line)}]
+  end
+
+  defp detect_index_dropped(_), do: []
 end

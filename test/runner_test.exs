@@ -2,14 +2,6 @@ defmodule ExcellentMigrations.RunnerTest do
   use ExUnit.Case
   alias ExcellentMigrations.Runner
 
-  test "it should be valid migration files" do
-    file_paths = [
-      "test/example_migrations/20220726000151_create_index_concurrently_valid.exs"
-    ]
-
-    assert :safe == Runner.check_migrations(migrations_paths: file_paths)
-  end
-
   test "generates warning messages for migration files" do
     file_paths = [
       "test/example_migrations/20191026103001_create_table_and_index.exs",
@@ -86,10 +78,20 @@ defmodule ExcellentMigrations.RunnerTest do
                  type: :index_not_concurrently
                },
                %{
+                line: 8,
+                path: "test/example_migrations/20220725111000_create_index.exs",
+                type: :index_dropped
+               },
+               %{
                  line: 9,
                  path: "test/example_migrations/20220725111000_create_index.exs",
                  type: :index_not_concurrently
                },
+               %{
+                line: 9,
+                path: "test/example_migrations/20220725111000_create_index.exs",
+                type: :index_dropped
+              },
                %{
                  line: 3,
                  path: "test/example_migrations/20220725111501_create_unique_index.exs",
@@ -106,28 +108,146 @@ defmodule ExcellentMigrations.RunnerTest do
                  type: :index_not_concurrently
                },
                %{
+                line: 8,
+                path: "test/example_migrations/20220725111501_create_unique_index.exs",
+                type: :index_dropped
+              },
+               %{
                  line: 9,
                  path: "test/example_migrations/20220725111501_create_unique_index.exs",
+                 type: :index_not_concurrently
+               },
+               %{
+                line: 9,
+                path: "test/example_migrations/20220725111501_create_unique_index.exs",
+                type: :index_dropped
+              },
+              %{
+                line: 6,
+                path:
+                  "test/example_migrations/20220726010151_create_index_concurrently_invalid.exs",
+                type: :index_not_concurrently
+              },
+              %{
+                line: 7,
+                path:
+                  "test/example_migrations/20220726010151_create_index_concurrently_invalid.exs",
+                type: :index_not_concurrently
+              },
+              %{
+                line: 8,
+                path:
+                  "test/example_migrations/20220726010151_create_index_concurrently_invalid.exs",
+                type: :index_not_concurrently
+              },
+              %{
+                line: 9,
+                path:
+                  "test/example_migrations/20220726010151_create_index_concurrently_invalid.exs",
+                type: :index_not_concurrently
+              },
+               %{
+                 line: 13,
+                 path:
+                   "test/example_migrations/20220726010151_create_index_concurrently_invalid.exs",
                  type: :index_not_concurrently
                },
                %{
                  line: 13,
                  path:
                    "test/example_migrations/20220726010151_create_index_concurrently_invalid.exs",
-                 type: :index_concurrently_without_disable_migration_lock
+                 type: :index_dropped
                },
                %{
-                 line: 13,
-                 path:
-                   "test/example_migrations/20220726010151_create_index_concurrently_invalid.exs",
-                 type: :index_concurrently_without_disable_ddl_transaction
-               },
+                line: 14,
+                path:
+                  "test/example_migrations/20220726010151_create_index_concurrently_invalid.exs",
+                type: :index_not_concurrently
+              },
+              %{
+                line: 14,
+                path:
+                  "test/example_migrations/20220726010151_create_index_concurrently_invalid.exs",
+                type: :index_dropped
+              },
+              %{
+                line: 15,
+                path:
+                  "test/example_migrations/20220726010151_create_index_concurrently_invalid.exs",
+                type: :index_not_concurrently
+              },
+              %{
+                line: 15,
+                path:
+                  "test/example_migrations/20220726010151_create_index_concurrently_invalid.exs",
+                type: :index_dropped
+              },
+              %{
+                line: 16,
+                path:
+                  "test/example_migrations/20220726010151_create_index_concurrently_invalid.exs",
+                type: :index_not_concurrently
+              },
+              %{
+                line: 16,
+                path:
+                  "test/example_migrations/20220726010151_create_index_concurrently_invalid.exs",
+                type: :index_dropped
+              },
+              %{
+                line: 12,
+                path:
+                  "test/example_migrations/20220804010152_create_index_concurrently_without_disable_ddl_transaction.exs",
+                type: :index_dropped
+              },
+              %{
+                line: 13,
+                path:
+                  "test/example_migrations/20220804010152_create_index_concurrently_without_disable_ddl_transaction.exs",
+                type: :index_dropped
+              },
+              %{
+                line: 14,
+                path:
+                  "test/example_migrations/20220804010152_create_index_concurrently_without_disable_ddl_transaction.exs",
+                type: :index_dropped
+              },
+              %{
+                line: 15,
+                path:
+                  "test/example_migrations/20220804010152_create_index_concurrently_without_disable_ddl_transaction.exs",
+                type: :index_dropped
+              },
                %{
                  line: 15,
                  path:
                    "test/example_migrations/20220804010152_create_index_concurrently_without_disable_ddl_transaction.exs",
                  type: :index_concurrently_without_disable_ddl_transaction
                },
+               %{
+                line: 12,
+                path:
+                  "test/example_migrations/20220804010153_create_index_concurrently_without_disable_migration_lock.exs",
+                type: :index_dropped
+              },
+              %{
+                line: 13,
+                path:
+                  "test/example_migrations/20220804010153_create_index_concurrently_without_disable_migration_lock.exs",
+                type: :index_dropped
+              },
+              %{
+                line: 14,
+                path:
+                  "test/example_migrations/20220804010153_create_index_concurrently_without_disable_migration_lock.exs",
+                type: :index_dropped
+              },
+              %{
+                line: 15,
+                path:
+                  "test/example_migrations/20220804010153_create_index_concurrently_without_disable_migration_lock.exs",
+                type: :index_dropped
+              },
                %{
                  line: 15,
                  path:

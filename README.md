@@ -257,7 +257,7 @@ To avoid a potentially lengthy update operation, particularly if you intend to f
 1. insert the correct values using `UPDATE` query
 1. only then add any desired default
 
-Also creating a new table with column with volatile default is safe, because it does not contain any records. 
+Also creating a new table with column with volatile default is safe, because it does not contain any records.
 
 ---
 
@@ -599,7 +599,7 @@ end
 
 **GOOD ✅**
 
-With Postgres, instead create the index concurrently which does not block reads. You will need to disable the database transactions to use `CONCURRENTLY`, and since Ecto obtains migration locks through database transactions this also implies that competing nodes may attempt to try to run the same migration (eg, in a multi-node Kubernetes environment that runs migrations before startup). Therefore, some nodes will fail startup for a variety of reasons. 
+With Postgres, instead create the index concurrently which does not block reads. You will need to disable the database transactions to use `CONCURRENTLY`, and since Ecto obtains migration locks through database transactions this also implies that competing nodes may attempt to try to run the same migration (eg, in a multi-node Kubernetes environment that runs migrations before startup). Therefore, some nodes will fail startup for a variety of reasons.
 
 ```elixir
 @disable_ddl_transaction true
@@ -788,6 +788,7 @@ Possible operation types are:
 * `column_volatile_default`
 * `index_concurrently_without_disable_ddl_transaction`
 * `index_concurrently_without_disable_migration_lock`
+* `index_dropped`
 * `index_not_concurrently`
 * `json_column_added`
 * `many_columns_index`

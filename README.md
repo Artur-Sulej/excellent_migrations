@@ -795,6 +795,8 @@ Possible operation types are:
 * `operation_delete`
 * `operation_insert`
 * `operation_update`
+* `operation_query`
+* `operation_one`
 * `raw_sql_executed`
 * `table_dropped`
 * `table_renamed`

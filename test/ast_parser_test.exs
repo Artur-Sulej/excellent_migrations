@@ -26,61 +26,90 @@ defmodule ExcellentMigrations.AstParserTest do
     assert [column_type_changed: 1, not_null_added: 1] == AstParser.parse(ast)
   end
 
-  test "detects json column added" do
-    ast1 = string_to_ast(~s(add :details, :json, null: false, default: "{}"))
-    ast2 = string_to_ast(~s(add :details, :jsonb, null: false, default: "{}"))
-    assert [json_column_added: 1] == AstParser.parse(ast1)
-    assert [] == AstParser.parse(ast2)
+  for fun_name <- [:add, :add_if_not_exists] do
+    test "detects json column added using #{fun_name}" do
+      ast_bad_1 =
+        string_to_ast(~s"""
+        alter table(:recipes) do
+          #{unquote(fun_name)} :details, :json
+        end
+        """)
+
+      ast_bad_2 =
+        string_to_ast(~s"""
+        alter table(:recipes) do
+          #{unquote(fun_name)} :details, :json, null: false, default: "{}"
+        end
+        """)
+
+      assert [{:json_column_added, 2}] == AstParser.parse(ast_bad_1)
+
+      assert [{:json_column_added, 2}, {:column_added_with_default, 2}] ==
+               AstParser.parse(ast_bad_2)
+
+      ast_good_1 =
+        string_to_ast(~s"""
+        alter table(:recipes) do
+          #{unquote(fun_name)} :details, :jsonb
+        end
+        """)
+
+      ast_good_2 =
+        string_to_ast(~s"""
+        alter table(:recipes) do
+          #{unquote(fun_name)} :details, :jsonb, null: false, default: "{}"
+        end
+        """)
+
+      assert [] == AstParser.parse(ast_good_1)
+      assert [{:column_added_with_default, 2}] == AstParser.parse(ast_good_2)
+    end
   end
 
-  test "detects json column added using if not exists" do
-    ast1 = string_to_ast(~s(add_if_not_exists :details, :json, null: false, default: "{}"))
-    ast2 = string_to_ast(~s(add_if_not_exists :details, :jsonb, null: false, default: "{}"))
-    assert [json_column_added: 1] == AstParser.parse(ast1)
-    assert [] == AstParser.parse(ast2)
-  end
+  for fun_name <- [:add, :add_if_not_exists] do
+    test "detects reference added on add with [validate: false] option using #{fun_name}" do
+      ast_bad_1 =
+        string_to_ast(~s"""
+        alter table(:recipes) do
+          #{unquote(fun_name)} :ingredient_id, references(:ingredients)
+        end
+        """)
 
-  test "detects reference added on modify" do
-    ast1 =
-      string_to_ast("modify(:ingredient_id, references(:ingredients), from: references(:stuff))")
+      ast_bad_2 =
+        string_to_ast(~s"""
+        alter table(:recipes) do
+          #{unquote(fun_name)} :ingredient_id, references(:ingredients, on_delete: :delete_all)
+        end
+        """)
 
-    ast2 =
-      string_to_ast("""
-      alter table(:recipes) do
-        modify :ingredient_id, references(:ingredients)
-      end
-      """)
+      ast_bad_3 =
+        string_to_ast(~s"""
+        alter table(:recipes) do
+          #{unquote(fun_name)} :ingredient_id, references(:ingredients, on_delete: :delete_all), null: true
+        end
+        """)
 
-    assert [column_reference_added: 1] == AstParser.parse(ast1)
-    assert [column_reference_added: 2] == AstParser.parse(ast2)
-  end
+      assert [{:column_reference_added, 2}] == AstParser.parse(ast_bad_1)
+      assert [{:column_reference_added, 2}] == AstParser.parse(ast_bad_2)
+      assert [{:column_reference_added, 2}] == AstParser.parse(ast_bad_3)
 
-  test "detects reference added on add without [validate: false] option" do
-    ast_bad_1 =
-      string_to_ast("""
-      alter table(:recipes) do
-        add :ingredient_id, references(:ingredients)
-      end
-      """)
+      ast_good_1 =
+        string_to_ast(~s"""
+        alter table(:recipes) do
+          #{unquote(fun_name)} :ingredient_id, references(:ingredients, validate: false)
+        end
+        """)
 
-    ast_bad_2 =
-      string_to_ast("""
-      alter table(:recipes) do
-        add :ingredient_id, references(:ingredients, on_delete: :delete_all)
-      end
-      """)
+      ast_good_2 =
+        string_to_ast(~s"""
+        alter table(:recipes) do
+          #{unquote(fun_name)} :ingredient_id, references(:ingredients, validate: false), null: true
+        end
+        """)
 
-    assert [{:column_reference_added, 2}] == AstParser.parse(ast_bad_1)
-    assert [{:column_reference_added, 2}] == AstParser.parse(ast_bad_2)
-
-    ast_good =
-      string_to_ast("""
-      alter table(:recipes) do
-        add :ingredient_id, references(:ingredients, validate: false)
-      end
-      """)
-
-    assert [] == AstParser.parse(ast_good)
+      assert [] == AstParser.parse(ast_good_1)
+      assert [] == AstParser.parse(ast_good_2)
+    end
   end
 
   test "detects check constraint added" do
@@ -363,7 +392,7 @@ defmodule ExcellentMigrations.AstParserTest do
     @safety_assured [:index_not_concurrently]
     def change do
       alter(table(:recipes)) do
-        add(:cookbook_id, references(:cookbooks, on_delete: :delete_all), null: false)
+        add(:cookbook_id, references(:cookbooks, on_delete: :delete_all, validate: false), null: false)
       end
 
       create(index(:recipes, [:cookbook_id, :cuisine], unique: true))

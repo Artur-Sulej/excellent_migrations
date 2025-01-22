@@ -130,15 +130,9 @@ defmodule ExcellentMigrations.AstParser do
   defp detect_column_volatile_default(_), do: []
 
   defp detect_column_reference_added(
-         {:modify, location, [_, {:references, _, _}, [from: {:references, _, _}]]}
-       ) do
-    [{:column_reference_added, Keyword.get(location, :line)}]
-  end
-
-  defp detect_column_reference_added(
-         {fun_name, location, [_, {:references, _, [_column, options]}]}
+         {fun_name, location, [_, {:references, _, [_column, options]} | _]}
        )
-       when fun_name in [:add, :modify] do
+       when fun_name in [:add, :add_if_not_exists] do
     if Keyword.get(options, :validate) == false do
       []
     else
@@ -146,8 +140,8 @@ defmodule ExcellentMigrations.AstParser do
     end
   end
 
-  defp detect_column_reference_added({fun_name, location, [_, {:references, _, _}]})
-       when fun_name in [:add, :modify] do
+  defp detect_column_reference_added({fun_name, location, [_, {:references, _, _} | _]})
+       when fun_name in [:add, :add_if_not_exists] do
     [{:column_reference_added, Keyword.get(location, :line)}]
   end
 
@@ -155,7 +149,9 @@ defmodule ExcellentMigrations.AstParser do
     [{:column_type_changed, Keyword.get(location, :line)}]
   end
 
-  defp detect_column_reference_added(_), do: []
+  defp detect_column_reference_added(_) do
+    []
+  end
 
   defp detect_not_null_added({:modify, location, [_, _, options]}) do
     if Keyword.get(options, :null) == false do

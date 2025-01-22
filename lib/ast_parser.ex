@@ -2,6 +2,7 @@ defmodule ExcellentMigrations.AstParser do
   @moduledoc false
   @max_columns_for_index 3
 
+  @add_functions [:add, :add_if_not_exists]
   @index_functions [:create, :create_if_not_exists, :drop, :drop_if_exists]
   @index_types [:index, :unique_index]
 
@@ -120,7 +121,7 @@ defmodule ExcellentMigrations.AstParser do
          {:alter, _,
           [{:table, _, _}, [do: {fun_name, location, [_, _, [default: {:fragment, _, _}]]}]]}
        )
-       when fun_name in [:add, :add_if_not_exists] do
+       when fun_name in @add_functions do
     [{:column_volatile_default, Keyword.get(location, :line)}]
   end
 
@@ -133,7 +134,7 @@ defmodule ExcellentMigrations.AstParser do
   defp detect_column_reference_added(
          {fun_name, location, [_, {:references, _, [_column, options]} | _]}
        )
-       when fun_name in [:add, :add_if_not_exists] do
+       when fun_name in @add_functions do
     if Keyword.get(options, :validate) == false do
       []
     else
@@ -142,7 +143,7 @@ defmodule ExcellentMigrations.AstParser do
   end
 
   defp detect_column_reference_added({fun_name, location, [_, {:references, _, _} | _]})
-       when fun_name in [:add, :add_if_not_exists] do
+       when fun_name in @add_functions do
     [{:column_reference_added, Keyword.get(location, :line)}]
   end
 
@@ -169,7 +170,7 @@ defmodule ExcellentMigrations.AstParser do
   defp detect_not_null_added(_), do: []
 
   defp detect_json_column_added({fun_name, location, [_, :json | _]})
-       when fun_name in [:add, :add_if_not_exists] do
+       when fun_name in @add_functions do
     [{:json_column_added, Keyword.get(location, :line)}]
   end
 
@@ -200,7 +201,7 @@ defmodule ExcellentMigrations.AstParser do
   defp detect_records_modified(_), do: []
 
   defp detect_column_added_with_default_inner({fun_name, location, [_, _, options]})
-       when fun_name in [:add, :add_if_not_exists] do
+       when fun_name in @add_functions do
     if Keyword.has_key?(options, :default) do
       [{:column_added_with_default, Keyword.get(location, :line)}]
     else

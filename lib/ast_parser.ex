@@ -31,6 +31,7 @@ defmodule ExcellentMigrations.AstParser do
       detect_column_added_with_default(code_part) ++
       detect_column_volatile_default(code_part) ++
       detect_column_reference_added(code_part) ++
+      detect_column_type_changed(code_part) ++
       detect_not_null_added(code_part) ++
       detect_check_constraint(code_part) ++
       detect_records_modified(code_part) ++
@@ -145,11 +146,15 @@ defmodule ExcellentMigrations.AstParser do
     [{:column_reference_added, Keyword.get(location, :line)}]
   end
 
-  defp detect_column_reference_added({:modify, location, _}) do
+  defp detect_column_reference_added(_) do
+    []
+  end
+
+  defp detect_column_type_changed({:modify, location, _}) do
     [{:column_type_changed, Keyword.get(location, :line)}]
   end
 
-  defp detect_column_reference_added(_) do
+  defp detect_column_type_changed(_) do
     []
   end
 

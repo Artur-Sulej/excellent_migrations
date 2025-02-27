@@ -29,6 +29,7 @@ defmodule ExcellentMigrations.AstParser do
       detect_table_renamed(code_part) ++
       detect_column_renamed(code_part) ++
       detect_column_added_with_default(code_part) ++
+      detect_column_added_with_string_type(code_part) ++
       detect_column_volatile_default(code_part) ++
       detect_column_reference_added(code_part) ++
       detect_not_null_added(code_part) ++
@@ -208,6 +209,24 @@ defmodule ExcellentMigrations.AstParser do
   end
 
   defp detect_column_added_with_default_inner(_), do: []
+
+  defp detect_column_added_with_string_type({fun_name, _, [{:table, _, _}, _]} = ast)
+       when fun_name in [:create, :alter] do
+    traverse_ast(ast, &detect_column_added_with_string_type_inner/1)
+  end
+
+  defp detect_column_added_with_string_type(_), do: []
+
+  defp detect_column_added_with_string_type_inner({fun_name, location, args})
+       when fun_name in [:add, :add_if_not_exists] do
+    if match?([_name, :string, _opts], args) || match?([_name, :string], args) do
+      [{:column_added_with_string_type, Keyword.get(location, :line)}]
+    else
+      []
+    end
+  end
+
+  defp detect_column_added_with_string_type_inner(_), do: []
 
   defp detect_safety_assured({:@, _, [{:safety_assured, _, [value]}]}) do
     [{:safety_assured, value}]

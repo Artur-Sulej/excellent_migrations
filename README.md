@@ -6,6 +6,7 @@
 [![Total Download](https://img.shields.io/hexpm/dt/excellent_migrations.svg)](https://hex.pm/packages/excellent_migrations)
 [![License](https://img.shields.io/hexpm/l/excellent_migrations.svg)](https://github.com/artur-sulej/excellent_migrations/blob/master/LICENSE.md)
 [![Last Updated](https://img.shields.io/github/last-commit/artur-sulej/excellent_migrations.svg)](https://github.com/artur-sulej/excellent_migrations/commits/master)
+[![libs.tech recommends](https://libs.tech/project/205240438/badge.svg)](https://libs.tech/project/205240438/excellent_migrations)
 
 Detect potentially dangerous or destructive operations in your database migrations.
 

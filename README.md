@@ -95,6 +95,7 @@ Potentially dangerous operations:
 
 - [Adding a check constraint](#adding-a-check-constraint)
 - [Adding a column with a default value](#adding-a-column-with-a-default-value)
+- [Adding a reference or foreign key](#adding-a-reference-or-foreign-key)
 - [Backfilling data](#backfilling-data)
 - [Column with volatile default](#column-with-volatile-default)
 - [Changing the type of a column](#changing-the-type-of-a-column)
@@ -221,6 +222,59 @@ schema "recipes" do
 + field :favourite, :boolean, default: false
 end
 ```
+
+---
+
+## Adding a reference or foreign key
+
+Adding a foreign key blocks writes on both tables.
+
+**BAD ❌**
+
+```elixir
+def change do
+  alter table("posts") do
+    add :group_id, references("groups")
+    # Obtains a ShareRowExclusiveLock which blocks writes on both tables
+  end
+end
+```
+
+
+**GOOD ✅**
+
+In the first migration
+
+```elixir
+def change do
+  alter table("posts") do
+    add :group_id, references("groups", validate: false)
+    # Obtains a ShareRowExclusiveLock which blocks writes on both tables.
+  end
+end
+```
+
+In the second migration
+
+```elixir
+def change do
+  execute "ALTER TABLE posts VALIDATE CONSTRAINT group_id_fkey", ""
+  # Obtains a ShareUpdateExclusiveLock which doesn't block reads or writes
+end
+```
+
+These migrations can be in the same deployment, but make sure they are separate migrations.
+
+**Note on empty tables**: when the table creating the referenced column is empty, you may be able to
+create the column and validate at the same time since the time difference would be milliseconds
+which may not be noticeable, no matter if you have 1 million or 100 million records in the referenced table.
+
+**Note on populated tables**: the biggest difference depends on your scale. For 1 million records in
+both tables, you may lock writes to both tables when creating the column for milliseconds
+(you should benchmark for yourself) which could be acceptable for you. However, once your table has
+100+ million records, the difference becomes seconds which is more likely to be felt and cause timeouts.
+The differentiating metric is the time that both tables are locked from writes. Therefore, err on the side
+of safety and separate constraint validation from referenced column creation when there is any data in the table.
 
 ---
 

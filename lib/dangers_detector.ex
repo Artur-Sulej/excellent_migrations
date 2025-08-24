@@ -21,6 +21,7 @@ defmodule ExcellentMigrations.DangersDetector do
           | :column_renamed
           | :column_type_changed
           | :column_volatile_default
+          | :column_added_generated_stored
           | :index_concurrently_without_disable_ddl_transaction
           | :index_concurrently_without_disable_migration_lock
           | :index_not_concurrently

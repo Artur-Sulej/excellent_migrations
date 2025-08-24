@@ -335,6 +335,17 @@ defmodule ExcellentMigrations.AstParserTest do
     assert [column_added_with_default: 2] == AstParser.parse(ast)
   end
 
+  test "detects added generated column stored" do
+    ast =
+      string_to_ast("""
+      alter table("recipes") do
+        add :generated_psql, :string, generated: "ALWAYS AS (id::text) STORED"
+      end
+      """)
+
+    assert [column_added_generated_stored: 2] == AstParser.parse(ast)
+  end
+
   test "detects column removed" do
     ast1 = string_to_ast("remove(:size, :string)")
     assert [column_removed: 1] == AstParser.parse(ast1)

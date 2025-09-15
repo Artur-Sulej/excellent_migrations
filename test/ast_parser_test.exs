@@ -17,8 +17,11 @@ defmodule ExcellentMigrations.AstParserTest do
   end
 
   test "detects column type changed" do
-    ast = string_to_ast("modify(:size, :integer, from: :string)")
-    assert [column_type_changed: 1] == AstParser.parse(ast)
+    ast1 = string_to_ast("modify(:size, :integer)")
+    ast2 = string_to_ast("modify(:size, :integer, from: :string)")
+
+    assert [column_type_changed: 1] == AstParser.parse(ast1)
+    assert [column_type_changed: 1] == AstParser.parse(ast2)
   end
 
   test "detects not null constraint added to column" do
@@ -51,27 +54,35 @@ defmodule ExcellentMigrations.AstParserTest do
       end
       """)
 
-    assert [column_reference_added: 1] == AstParser.parse(ast1)
-    assert [column_reference_added: 2] == AstParser.parse(ast2)
+    assert [column_type_changed: 1, column_reference_added: 1] == AstParser.parse(ast1)
+    assert [column_type_changed: 2, column_reference_added: 2] == AstParser.parse(ast2)
   end
 
   test "detects reference added on add without [validate: false] option" do
-    ast_bad_1 =
+    ast_bad1 =
       string_to_ast("""
       alter table(:recipes) do
         add :ingredient_id, references(:ingredients)
       end
       """)
 
-    ast_bad_2 =
+    ast_bad2 =
       string_to_ast("""
       alter table(:recipes) do
         add :ingredient_id, references(:ingredients, on_delete: :delete_all)
       end
       """)
 
-    assert [{:column_reference_added, 2}] == AstParser.parse(ast_bad_1)
-    assert [{:column_reference_added, 2}] == AstParser.parse(ast_bad_2)
+    ast_bad3 =
+      string_to_ast("""
+      alter table(:recipes) do
+        add :ingredient_id, references(:ingredients, validate: true)
+      end
+      """)
+
+    assert [{:column_reference_added, 2}] == AstParser.parse(ast_bad1)
+    assert [{:column_reference_added, 2}] == AstParser.parse(ast_bad2)
+    assert [{:column_reference_added, 2}] == AstParser.parse(ast_bad3)
 
     ast_good =
       string_to_ast("""

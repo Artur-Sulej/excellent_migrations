@@ -267,19 +267,38 @@ defmodule ExcellentMigrations.AstParserTest do
     alter_table =
       string_to_ast("""
       alter table("recipes") do
-        add(:taste, :string, default: "sweet")
+        add(:taste, :text, default: "sweet")
       end
       """)
 
     create_table =
       string_to_ast("""
       create table("recipes") do
-        add(:taste, :string, default: "sweet")
+        add(:taste, :text, default: "sweet")
       end
       """)
 
     assert [column_added_with_default: 2] == AstParser.parse(alter_table)
     assert [] == AstParser.parse(create_table)
+  end
+
+  test "detects column added with string type" do
+    alter_table =
+      string_to_ast("""
+      alter table("recipes") do
+        add(:taste, :string)
+      end
+      """)
+
+    create_table =
+      string_to_ast("""
+      create table("recipes") do
+        add(:taste, :string, null: true)
+      end
+      """)
+
+    assert [column_added_with_string_type: 2] == AstParser.parse(alter_table)
+    assert [column_added_with_string_type: 2] == AstParser.parse(create_table)
   end
 
   test "detects column default changed to volatile" do
@@ -328,7 +347,7 @@ defmodule ExcellentMigrations.AstParserTest do
     ast =
       string_to_ast("""
       alter table("recipes") do
-        add_if_not_exists(:taste, :string, default: "sweet")
+        add_if_not_exists(:taste, :text, default: "sweet")
       end
       """)
 

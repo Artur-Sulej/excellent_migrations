@@ -111,6 +111,7 @@ Postgres-specific checks:
 - [Adding a reference](#adding-a-reference)
 - [Adding an index non-concurrently](#adding-an-index-non-concurrently)
 - [Adding an index concurrently without disabling lock or transaction](#adding-an-index-concurrently-without-disabling-lock-or-transaction)
+- [Adding a string column](#adding-a-string-column)
 
 Best practices:
 
@@ -762,6 +763,36 @@ def change do
   end
 end
 ```
+
+---
+
+### Adding a string column
+
+In Postgres, there is no performance benefit to using the `:string` (`varchar(255)`) type over `:text`, and `:string` can cause failures when inserting data if the value is longer than 255 characters.
+
+**BAD ❌**
+
+```elixir
+def change do
+  alter table("recipes") do
+    add :name, :string
+  end
+end
+```
+
+**GOOD ✅**
+
+Use `:text` instead
+
+```elixir
+def change do
+  alter table("recipes") do
+    add :name, :text
+  end
+end
+```
+
+Reference: [Postgres Official Anti-Patterns Doc](https://wiki.postgresql.org/wiki/Don%27t_Do_This#Don.27t_use_varchar.28n.29_by_default)
 
 ---
 

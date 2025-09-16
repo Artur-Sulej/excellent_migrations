@@ -24,7 +24,8 @@ defmodule ExcellentMigrations.RunnerTest do
       "test/example_migrations/20220725111501_create_unique_index.exs",
       "test/example_migrations/20220726010151_create_index_concurrently_invalid.exs",
       "test/example_migrations/20220804010152_create_index_concurrently_without_disable_ddl_transaction.exs",
-      "test/example_migrations/20220804010153_create_index_concurrently_without_disable_migration_lock.exs"
+      "test/example_migrations/20220804010153_create_index_concurrently_without_disable_migration_lock.exs",
+      "test/example_migrations/20250228103004_add_column_with_string_type.exs"
     ]
 
     assert {
@@ -133,6 +134,16 @@ defmodule ExcellentMigrations.RunnerTest do
                  path:
                    "test/example_migrations/20220804010153_create_index_concurrently_without_disable_migration_lock.exs",
                  type: :index_concurrently_without_disable_migration_lock
+               },
+               %{
+                 line: 4,
+                 path: "test/example_migrations/20250228103004_add_column_with_string_type.exs",
+                 type: :column_added_with_string_type
+               },
+               %{
+                 line: 5,
+                 path: "test/example_migrations/20250228103004_add_column_with_string_type.exs",
+                 type: :column_added_with_string_type
                }
              ]
            } == Runner.check_migrations(migrations_paths: file_paths)

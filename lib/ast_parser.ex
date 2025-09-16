@@ -136,15 +136,16 @@ defmodule ExcellentMigrations.AstParser do
 
   defp detect_column_type_changed(_), do: []
 
-  defp detect_column_reference_added(
-         {:modify, location, [_, {:references, _, _}, [from: {:references, _, _}]]}
-       ) do
-    [{:column_reference_added, Keyword.get(location, :line)}]
+  defp detect_column_reference_added({fun_name, location, [_, {:references, _, [_, options]}]})
+       when fun_name in [:add, :modify] do
+    if Keyword.get(options, :validate) == false do
+      []
+    else
+      [{:column_reference_added, Keyword.get(location, :line)}]
+    end
   end
 
-  defp detect_column_reference_added(
-         {fun_name, location, [_, {:references, _, [_column, options]}]}
-       )
+  defp detect_column_reference_added({fun_name, location, [_, {:references, _, [_, options]}, _]})
        when fun_name in [:add, :modify] do
     if Keyword.get(options, :validate) == false do
       []
@@ -154,6 +155,11 @@ defmodule ExcellentMigrations.AstParser do
   end
 
   defp detect_column_reference_added({fun_name, location, [_, {:references, _, _}]})
+       when fun_name in [:add, :modify] do
+    [{:column_reference_added, Keyword.get(location, :line)}]
+  end
+
+  defp detect_column_reference_added({fun_name, location, [_, {:references, _, _}, _]})
        when fun_name in [:add, :modify] do
     [{:column_reference_added, Keyword.get(location, :line)}]
   end

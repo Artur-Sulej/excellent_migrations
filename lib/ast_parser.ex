@@ -2,6 +2,7 @@ defmodule ExcellentMigrations.AstParser do
   @moduledoc false
   @max_columns_for_index 3
 
+  @add_functions [:add, :add_if_not_exists]
   @index_functions [:create, :create_if_not_exists, :drop, :drop_if_exists]
   @index_types [:index, :unique_index]
 
@@ -31,6 +32,7 @@ defmodule ExcellentMigrations.AstParser do
       detect_column_added_with_default(code_part) ++
       detect_column_volatile_default(code_part) ++
       detect_column_reference_added(code_part) ++
+      detect_column_type_changed(code_part) ++
       detect_not_null_added(code_part) ++
       detect_check_constraint(code_part) ++
       detect_records_modified(code_part) ++
@@ -119,7 +121,7 @@ defmodule ExcellentMigrations.AstParser do
          {:alter, _,
           [{:table, _, _}, [do: {fun_name, location, [_, _, [default: {:fragment, _, _}]]}]]}
        )
-       when fun_name in [:add, :add_if_not_exists] do
+       when fun_name in @add_functions do
     [{:column_volatile_default, Keyword.get(location, :line)}]
   end
 
@@ -130,15 +132,9 @@ defmodule ExcellentMigrations.AstParser do
   defp detect_column_volatile_default(_), do: []
 
   defp detect_column_reference_added(
-         {:modify, location, [_, {:references, _, _}, [from: {:references, _, _}]]}
-       ) do
-    [{:column_reference_added, Keyword.get(location, :line)}]
-  end
-
-  defp detect_column_reference_added(
-         {fun_name, location, [_, {:references, _, [_column, options]}]}
+         {fun_name, location, [_, {:references, _, [_column, options]} | _]}
        )
-       when fun_name in [:add, :modify] do
+       when fun_name in @add_functions do
     if Keyword.get(options, :validate) == false do
       []
     else
@@ -146,16 +142,22 @@ defmodule ExcellentMigrations.AstParser do
     end
   end
 
-  defp detect_column_reference_added({fun_name, location, [_, {:references, _, _}]})
-       when fun_name in [:add, :modify] do
+  defp detect_column_reference_added({fun_name, location, [_, {:references, _, _} | _]})
+       when fun_name in @add_functions do
     [{:column_reference_added, Keyword.get(location, :line)}]
   end
 
-  defp detect_column_reference_added({:modify, location, _}) do
+  defp detect_column_reference_added(_) do
+    []
+  end
+
+  defp detect_column_type_changed({:modify, location, _}) do
     [{:column_type_changed, Keyword.get(location, :line)}]
   end
 
-  defp detect_column_reference_added(_), do: []
+  defp detect_column_type_changed(_) do
+    []
+  end
 
   defp detect_not_null_added({:modify, location, [_, _, options]}) do
     if Keyword.get(options, :null) == false do
@@ -168,7 +170,7 @@ defmodule ExcellentMigrations.AstParser do
   defp detect_not_null_added(_), do: []
 
   defp detect_json_column_added({fun_name, location, [_, :json | _]})
-       when fun_name in [:add, :add_if_not_exists] do
+       when fun_name in @add_functions do
     [{:json_column_added, Keyword.get(location, :line)}]
   end
 
@@ -199,7 +201,7 @@ defmodule ExcellentMigrations.AstParser do
   defp detect_records_modified(_), do: []
 
   defp detect_column_added_with_default_inner({fun_name, location, [_, _, options]})
-       when fun_name in [:add, :add_if_not_exists] do
+       when fun_name in @add_functions do
     if Keyword.has_key?(options, :default) do
       [{:column_added_with_default, Keyword.get(location, :line)}]
     else

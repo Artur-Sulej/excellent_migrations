@@ -31,6 +31,11 @@ defmodule ExcellentMigrations.RunnerTest do
              :dangerous,
              [
                %{
+                 line: 4,
+                 type: :column_reference_added,
+                 path: "test/example_migrations/20191026103001_create_table_and_index.exs"
+               },
+               %{
                  line: 8,
                  path: "test/example_migrations/20191026103001_create_table_and_index.exs",
                  type: :index_not_concurrently

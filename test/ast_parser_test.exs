@@ -17,8 +17,11 @@ defmodule ExcellentMigrations.AstParserTest do
   end
 
   test "detects column type changed" do
-    ast = string_to_ast("modify(:size, :integer, from: :string)")
-    assert [column_type_changed: 1] == AstParser.parse(ast)
+    ast1 = string_to_ast("modify(:size, :integer)")
+    ast2 = string_to_ast("modify(:size, :integer, from: :string)")
+
+    assert [column_type_changed: 1] == AstParser.parse(ast1)
+    assert [column_type_changed: 1] == AstParser.parse(ast2)
   end
 
   test "detects not null constraint added to column" do
@@ -40,47 +43,66 @@ defmodule ExcellentMigrations.AstParserTest do
     assert [] == AstParser.parse(ast2)
   end
 
-  test "detects reference added on modify" do
+  test "detects reference added on column modify without [validate: false] option" do
     ast1 =
-      string_to_ast("modify(:ingredient_id, references(:ingredients), from: references(:stuff))")
-
-    ast2 =
       string_to_ast("""
       alter table(:recipes) do
         modify :ingredient_id, references(:ingredients)
       end
       """)
 
-    assert [column_reference_added: 1] == AstParser.parse(ast1)
-    assert [column_reference_added: 2] == AstParser.parse(ast2)
+    ast2 =
+      string_to_ast("modify(:ingredient_id, references(:ingredients), from: references(:stuff))")
+
+    ast3 =
+      string_to_ast("modify(:ingredient_id, references(:ingredients), null: true)")
+
+    ast4 = string_to_ast("modify(:ingredient_id, references(:ingredients, validate: false))")
+
+    ast5 =
+      string_to_ast(
+        "modify(:ingredient_id, references(:ingredients, validate: false), null: true)"
+      )
+
+    assert [column_type_changed: 2, column_reference_added: 2] == AstParser.parse(ast1)
+    assert [column_type_changed: 1, column_reference_added: 1] == AstParser.parse(ast2)
+    assert [column_type_changed: 1, column_reference_added: 1] == AstParser.parse(ast3)
+    assert [column_type_changed: 1] == AstParser.parse(ast4)
+    assert [column_type_changed: 1] == AstParser.parse(ast5)
   end
 
-  test "detects reference added on add without [validate: false] option" do
-    ast_bad_1 =
+  test "detects reference added on column add without [validate: false] option" do
+    ast1 =
       string_to_ast("""
       alter table(:recipes) do
         add :ingredient_id, references(:ingredients)
       end
       """)
 
-    ast_bad_2 =
-      string_to_ast("""
-      alter table(:recipes) do
-        add :ingredient_id, references(:ingredients, on_delete: :delete_all)
-      end
-      """)
+    ast2 = string_to_ast("add :ingredient_id, references(:ingredients, on_delete: :delete_all)")
 
-    assert [{:column_reference_added, 2}] == AstParser.parse(ast_bad_1)
-    assert [{:column_reference_added, 2}] == AstParser.parse(ast_bad_2)
+    ast3 =
+      string_to_ast(
+        "add :ingredient_id, references(:ingredients, on_delete: :delete_all), null: true"
+      )
 
-    ast_good =
-      string_to_ast("""
-      alter table(:recipes) do
-        add :ingredient_id, references(:ingredients, validate: false)
-      end
-      """)
+    ast4 = string_to_ast("add :ingredient_id, references(:ingredients, validate: true)")
 
-    assert [] == AstParser.parse(ast_good)
+    ast5 =
+      string_to_ast("add :ingredient_id, references(:ingredients, validate: true), null: true")
+
+    ast6 = string_to_ast("add :ingredient_id, references(:ingredients, validate: false)")
+
+    ast7 =
+      string_to_ast("add :ingredient_id, references(:ingredients, validate: false), null: true")
+
+    assert [{:column_reference_added, 2}] == AstParser.parse(ast1)
+    assert [{:column_reference_added, 1}] == AstParser.parse(ast2)
+    assert [{:column_reference_added, 1}] == AstParser.parse(ast3)
+    assert [{:column_reference_added, 1}] == AstParser.parse(ast4)
+    assert [{:column_reference_added, 1}] == AstParser.parse(ast5)
+    assert [] == AstParser.parse(ast6)
+    assert [] == AstParser.parse(ast7)
   end
 
   test "detects check constraint added" do
@@ -363,7 +385,7 @@ defmodule ExcellentMigrations.AstParserTest do
     @safety_assured [:index_not_concurrently]
     def change do
       alter(table(:recipes)) do
-        add(:cookbook_id, references(:cookbooks, on_delete: :delete_all), null: false)
+        add(:cookbook_id, references(:cookbooks, validate: false), null: false)
       end
 
       create(index(:recipes, [:cookbook_id, :cuisine], unique: true))

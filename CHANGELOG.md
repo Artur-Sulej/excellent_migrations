@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [0.1.9] - 2025-09-17
+### Changed
+- Reference (foreign key) detection now correctly skips when `validate: false` option is present (treated as safe)
+
+### Fixed
+- Improved reference (foreign key) detection for various syntax patterns (with/without options)
+- Always detect column type changes for all `modify` operations
+
 ## [0.1.8] - 2024-02-09
 ### Fixed
 - Using `Logger.warning` instead of deprecated `Logger.warn`
@@ -46,7 +54,8 @@
 ### Added
 - First release!
 
-[Unreleased]: https://github.com/artur-sulej/excellent_migrations/compare/v0.1.8...HEAD
+[Unreleased]: https://github.com/artur-sulej/excellent_migrations/compare/v0.1.9...HEAD
+[0.1.9]: https://github.com/artur-sulej/excellent_migrations/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/artur-sulej/excellent_migrations/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/artur-sulej/excellent_migrations/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/artur-sulej/excellent_migrations/compare/v0.1.5...v0.1.6

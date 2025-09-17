@@ -97,8 +97,8 @@ Potentially dangerous operations:
 - [Adding a column with a default value](#adding-a-column-with-a-default-value)
 - [Adding a reference or foreign key](#adding-a-reference-or-foreign-key)
 - [Backfilling data](#backfilling-data)
-- [Column with volatile default](#column-with-volatile-default)
 - [Changing the type of a column](#changing-the-type-of-a-column)
+- [Column with volatile default](#column-with-volatile-default)
 - [Executing SQL directly](#executing-SQL-directly)
 - [Removing a column](#removing-a-column)
 - [Renaming a column](#renaming-a-column)
@@ -108,9 +108,8 @@ Potentially dangerous operations:
 Postgres-specific checks:
 
 - [Adding a json column](#adding-a-json-column)
-- [Adding a reference](#adding-a-reference)
-- [Adding an index non-concurrently](#adding-an-index-non-concurrently)
 - [Adding an index concurrently without disabling lock or transaction](#adding-an-index-concurrently-without-disabling-lock-or-transaction)
+- [Adding an index non-concurrently](#adding-an-index-non-concurrently)
 
 Best practices:
 
@@ -233,8 +232,8 @@ Adding a foreign key blocks writes on both tables.
 
 ```elixir
 def change do
-  alter table("posts") do
-    add :group_id, references("groups")
+  alter table("recipes") do
+    add :cookbook_id, references("cookbooks")
     # Obtains a ShareRowExclusiveLock which blocks writes on both tables
   end
 end
@@ -247,8 +246,8 @@ In the first migration
 
 ```elixir
 def change do
-  alter table("posts") do
-    add :group_id, references("groups", validate: false)
+  alter table("recipes") do
+    add :cookbook_id, references("cookbooks", validate: false)
     # Obtains a ShareRowExclusiveLock which blocks writes on both tables.
   end
 end
@@ -258,7 +257,7 @@ In the second migration
 
 ```elixir
 def change do
-  execute "ALTER TABLE posts VALIDATE CONSTRAINT group_id_fkey", ""
+  execute "ALTER TABLE recipes VALIDATE CONSTRAINT cookbook_id_fkey", ""
   # Obtains a ShareUpdateExclusiveLock which doesn't block reads or writes
 end
 ```
@@ -696,44 +695,6 @@ defmodule Cookbook.AddIndex do
   end
 end
 ```
-
----
-
-### Adding a reference
-
-Adding a foreign key blocks writes on both tables.
-
-**BAD ❌**
-
-```elixir
-def change do
-  alter table("recipes") do
-    add :cookbook_id, references("cookbooks")
-  end
-end
-```
-
-**GOOD ✅**
-
-In the first migration
-
-```elixir
-def change do
-  alter table("recipes") do
-    add :cookbook_id, references("cookbooks", validate: false)
-  end
-end
-```
-
-In the second migration
-
-```elixir
-def change do
-  execute "ALTER TABLE recipes VALIDATE CONSTRAINT cookbook_id_fkey", ""
-end
-```
-
- These migrations can be in the same deployment, but make sure they are separate migrations.
 
 ---
 

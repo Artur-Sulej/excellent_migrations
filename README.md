@@ -104,6 +104,7 @@ Potentially dangerous operations:
 - [Renaming a column](#renaming-a-column)
 - [Renaming a table](#renaming-a-table)
 - [Setting NOT NULL on an existing column](#setting-not-null-on-an-existing-column)
+- [Dropping an index](#dropping-an-index)
 
 Postgres-specific checks:
 
@@ -310,7 +311,7 @@ To avoid a potentially lengthy update operation, particularly if you intend to f
 1. insert the correct values using `UPDATE` query
 1. only then add any desired default
 
-Also creating a new table with column with volatile default is safe, because it does not contain any records. 
+Also creating a new table with column with volatile default is safe, because it does not contain any records.
 
 ---
 
@@ -422,8 +423,6 @@ Rename the field in the schema only, and configure it to point to the database c
 
 ```elixir
 defmodule Cookbook.Recipe do
-  use Ecto.Schema
-
   schema "recipes" do
     field :author, :string
     field :preparation_minutes, :integer, source: :prep_min
@@ -618,6 +617,53 @@ end
 
 If your constraint fails, then you should consider backfilling data first to cover the gaps in your desired data integrity, then revisit validating the constraint.
 
+### Dropping an index
+
+Dropping an index can lead to performance issues if queries rely on that index. This is especially
+risky when dropping and recreating indexes in the same deployment, as there will be a period where
+no index exists.
+
+**BAD ❌**
+
+```elixir
+def change do
+  drop index("recipes", [:user_id])
+  # During the time between dropping the old index and creating the new one, queries that used the
+  # original index will fall back to sequential scans, which can severely impact performance on
+  # large tables.
+  create index("recipes", [:user_id, :published_at])
+end
+```
+
+**GOOD ✅**
+
+Create the new index first, verify it's being used, then drop the old one. With Postgres, use
+concurrent index creation to avoid blocking reads:
+
+```elixir
+# First migration
+@disable_ddl_transaction true
+@disable_migration_lock true
+
+def change do
+  create index("recipes", [:user_id, :published_at], concurrently: true)
+end
+```
+
+After deploying this migration, verify that your queries are actually using the new index. In
+Postgres, you can use `EXPLAIN ANALYZE` to check the query plan and confirm the new index is being
+used as expected.
+
+```elixir
+# Second migration (after confirming index usage)
+def change do
+  drop index("recipes", [:user_id])
+end
+```
+
+This ensures that there is always an index available for queries to use. The old index can be safely
+dropped once the new index is fully built and available.
+
 ---
 
 ### Executing SQL directly
@@ -652,7 +698,7 @@ end
 
 **GOOD ✅**
 
-With Postgres, instead create the index concurrently which does not block reads. You will need to disable the database transactions to use `CONCURRENTLY`, and since Ecto obtains migration locks through database transactions this also implies that competing nodes may attempt to try to run the same migration (eg, in a multi-node Kubernetes environment that runs migrations before startup). Therefore, some nodes will fail startup for a variety of reasons. 
+With Postgres, instead create the index concurrently which does not block reads. You will need to disable the database transactions to use `CONCURRENTLY`, and since Ecto obtains migration locks through database transactions this also implies that competing nodes may attempt to try to run the same migration (eg, in a multi-node Kubernetes environment that runs migrations before startup). Therefore, some nodes will fail startup for a variety of reasons.
 
 ```elixir
 @disable_ddl_transaction true
@@ -803,6 +849,7 @@ Possible operation types are:
 * `column_volatile_default`
 * `index_concurrently_without_disable_ddl_transaction`
 * `index_concurrently_without_disable_migration_lock`
+* `index_dropped`
 * `index_not_concurrently`
 * `json_column_added`
 * `many_columns_index`

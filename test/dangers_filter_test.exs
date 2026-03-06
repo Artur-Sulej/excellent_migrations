@@ -1,5 +1,6 @@
 defmodule ExcellentMigrations.DangersFilterTest do
   use ExUnit.Case
+  import ExUnit.CaptureLog
   alias ExcellentMigrations.DangersFilter
 
   describe "no safety assured" do
@@ -59,83 +60,91 @@ defmodule ExcellentMigrations.DangersFilterTest do
 
   describe "safety assured via module attribute" do
     test "rejects all if safety assured module attribute for all" do
-      assert [] ==
-               DangersFilter.filter_dangers(
-                 [table_renamed: 5, safety_assured: :all],
-                 [],
-                 []
-               )
+      capture_log(fn ->
+        assert [] ==
+                 DangersFilter.filter_dangers(
+                   [table_renamed: 5, safety_assured: :all],
+                   [],
+                   []
+                 )
 
-      assert [] ==
-               DangersFilter.filter_dangers(
-                 [table_renamed: 5, column_renamed: 8, safety_assured: :all],
-                 [],
-                 []
-               )
+        assert [] ==
+                 DangersFilter.filter_dangers(
+                   [table_renamed: 5, column_renamed: 8, safety_assured: :all],
+                   [],
+                   []
+                 )
+      end)
     end
 
     test "rejects only types that have safety assured module attribute" do
-      assert [table_renamed: 5] ==
-               DangersFilter.filter_dangers(
-                 [table_renamed: 5, column_renamed: 8, safety_assured: [:column_renamed]],
-                 [],
-                 []
-               )
+      capture_log(fn ->
+        assert [table_renamed: 5] ==
+                 DangersFilter.filter_dangers(
+                   [table_renamed: 5, column_renamed: 8, safety_assured: [:column_renamed]],
+                   [],
+                   []
+                 )
 
-      assert [] ==
-               DangersFilter.filter_dangers(
-                 [column_renamed: 8, safety_assured: [:column_renamed]],
-                 [],
-                 []
-               )
+        assert [] ==
+                 DangersFilter.filter_dangers(
+                   [column_renamed: 8, safety_assured: [:column_renamed]],
+                   [],
+                   []
+                 )
 
-      assert [] ==
-               DangersFilter.filter_dangers(
-                 [
-                   table_renamed: 5,
-                   column_renamed: 8,
-                   safety_assured: [:table_renamed, :column_renamed]
-                 ],
-                 [],
-                 []
-               )
+        assert [] ==
+                 DangersFilter.filter_dangers(
+                   [
+                     table_renamed: 5,
+                     column_renamed: 8,
+                     safety_assured: [:table_renamed, :column_renamed]
+                   ],
+                   [],
+                   []
+                 )
+      end)
     end
 
     test "rejects types from multiple safety_assured module attribute" do
-      assert [column_removed: 11] ==
-               DangersFilter.filter_dangers(
-                 [
-                   table_renamed: 5,
-                   column_renamed: 8,
-                   column_renamed: 10,
-                   column_removed: 11,
-                   safety_assured: [:column_renamed],
-                   safety_assured: [:table_renamed]
-                 ],
-                 [],
-                 []
-               )
+      capture_log(fn ->
+        assert [column_removed: 11] ==
+                 DangersFilter.filter_dangers(
+                   [
+                     table_renamed: 5,
+                     column_renamed: 8,
+                     column_renamed: 10,
+                     column_removed: 11,
+                     safety_assured: [:column_renamed],
+                     safety_assured: [:table_renamed]
+                   ],
+                   [],
+                   []
+                 )
+      end)
     end
 
     test "module attribute safety_assured: :all is ignored if there are specific types listed" do
-      assert [table_renamed: 5] ==
-               DangersFilter.filter_dangers(
-                 [table_renamed: 5, column_renamed: 8, safety_assured: [:all, :column_renamed]],
-                 [],
-                 []
-               )
+      capture_log(fn ->
+        assert [table_renamed: 5] ==
+                 DangersFilter.filter_dangers(
+                   [table_renamed: 5, column_renamed: 8, safety_assured: [:all, :column_renamed]],
+                   [],
+                   []
+                 )
 
-      assert [table_renamed: 5] ==
-               DangersFilter.filter_dangers(
-                 [
-                   table_renamed: 5,
-                   column_renamed: 8,
-                   safety_assured: [:all],
-                   safety_assured: [:column_renamed]
-                 ],
-                 [],
-                 []
-               )
+        assert [table_renamed: 5] ==
+                 DangersFilter.filter_dangers(
+                   [
+                     table_renamed: 5,
+                     column_renamed: 8,
+                     safety_assured: [:all],
+                     safety_assured: [:column_renamed]
+                   ],
+                   [],
+                   []
+                 )
+      end)
     end
   end
 end

@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.1.10] - 2026-03-07
+### Fixed
+- Check constraint with `validate: false` is now treated as safe
+- Read-only Repo operations (`one`, `all`, `get`, `query`, etc.) are no longer flagged as dangerous
+
 ## [0.1.9] - 2025-09-17
 ### Changed
 - Reference (foreign key) detection now correctly skips when `validate: false` option is present (treated as safe)
@@ -54,7 +59,8 @@
 ### Added
 - First release!
 
-[Unreleased]: https://github.com/artur-sulej/excellent_migrations/compare/v0.1.9...HEAD
+[Unreleased]: https://github.com/artur-sulej/excellent_migrations/compare/v0.1.10...HEAD
+[0.1.10]: https://github.com/artur-sulej/excellent_migrations/compare/v0.1.9...v0.1.10
 [0.1.9]: https://github.com/artur-sulej/excellent_migrations/compare/v0.1.8...v0.1.9
 [0.1.8]: https://github.com/artur-sulej/excellent_migrations/compare/v0.1.7...v0.1.8
 [0.1.7]: https://github.com/artur-sulej/excellent_migrations/compare/v0.1.6...v0.1.7

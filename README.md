@@ -52,7 +52,7 @@ Add `ExcellentMigrations.CredoCheck.MigrationsSafety` and include your migration
           "priv/repo/migrations", # <-- add this
           # …
         ]
-      }
+      },
       # …
       checks: %{
         enabled: [

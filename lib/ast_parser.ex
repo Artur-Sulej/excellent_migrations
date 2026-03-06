@@ -5,6 +5,12 @@ defmodule ExcellentMigrations.AstParser do
   @index_functions [:create, :create_if_not_exists, :drop, :drop_if_exists]
   @index_types [:index, :unique_index]
 
+  @repo_insert_operations [:insert, :insert!, :insert_all, :insert_or_update, :insert_or_update!]
+  @repo_update_operations [:update, :update!, :update_all]
+  @repo_delete_operations [:delete, :delete!, :delete_all]
+  @repo_write_operations @repo_insert_operations ++
+                           @repo_update_operations ++ @repo_delete_operations
+
   def parse(ast) do
     traverse_ast(ast, &detect_dangers/1)
   end
@@ -193,23 +199,20 @@ defmodule ExcellentMigrations.AstParser do
 
   defp detect_check_constraint(_), do: []
 
-  defp detect_records_modified({:., location, [{:__aliases__, _, modules}, operation]}) do
+  defp detect_records_modified({:., location, [{:__aliases__, _, modules}, operation]})
+       when operation in @repo_write_operations do
     if Enum.member?(modules, :Repo) do
-      danger =
-        operation
-        |> Atom.to_string()
-        |> String.replace_suffix("!", "")
-        |> String.replace_suffix("_all", "")
-        |> (&"operation_#{&1}").()
-        |> String.to_atom()
-
-      [{danger, Keyword.get(location, :line)}]
+      [{danger_type(operation), Keyword.get(location, :line)}]
     else
       []
     end
   end
 
   defp detect_records_modified(_), do: []
+
+  defp danger_type(op) when op in @repo_insert_operations, do: :operation_insert
+  defp danger_type(op) when op in @repo_update_operations, do: :operation_update
+  defp danger_type(op) when op in @repo_delete_operations, do: :operation_delete
 
   defp detect_column_added_with_default_inner({fun_name, location, [_, _, options]})
        when fun_name in [:add, :add_if_not_exists] do

@@ -1,5 +1,6 @@
 defmodule ExcellentMigrations.DangersDetectorTest do
   use ExUnit.Case
+  import ExUnit.CaptureLog
   alias ExcellentMigrations.DangersDetector
 
   test "detects dangers in AST" do
@@ -13,7 +14,7 @@ defmodule ExcellentMigrations.DangersDetectorTest do
     {ast, source_code} =
       get_ast_and_source("20191026103004_execute_raw_sql_with_safety_assured.exs")
 
-    assert [] == DangersDetector.detect_dangers(ast, source_code)
+    assert {[], _log} = with_log(fn -> DangersDetector.detect_dangers(ast, source_code) end)
   end
 
   test "skips dangers with safety assured config comments" do

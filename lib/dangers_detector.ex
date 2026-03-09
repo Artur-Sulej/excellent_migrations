@@ -23,6 +23,7 @@ defmodule ExcellentMigrations.DangersDetector do
           | :column_volatile_default
           | :index_concurrently_without_disable_ddl_transaction
           | :index_concurrently_without_disable_migration_lock
+          | :index_dropped
           | :index_not_concurrently
           | :json_column_added
           | :many_columns_index

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+- Optional database version configuration, including abbreviated versions, for operations that
+  are safe on supported versions
+
 ## [0.1.10] - 2026-03-07
 ### Fixed
 - Check constraint with `validate: false` is now treated as safe

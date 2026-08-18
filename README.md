@@ -831,6 +831,24 @@ Ignore specific dangers for all migration checks with:
 config :excellent_migrations, skip_checks: [:raw_sql_executed, :not_null_added]
 ```
 
+## Database version
+
+Configure the database and its version to ignore operations that are safe on that version:
+
+```elixir
+config :excellent_migrations,
+  database: [engine: :postgres, version: "11"]
+```
+
+The version can contain a major version (`"11"`), major and minor versions (`"8.0"`), or a full
+version (`"8.0.12"`). When minor or patch versions are omitted, Excellent Migrations assumes the
+newest version within the configured major or major and minor version. Supported engines are
+`:postgres`, `:mysql`, and `:mariadb`.
+
+Currently, this configuration applies to adding a column with a non-volatile default. This is safe
+in Postgres 11+, MySQL 8.0.12+, and MariaDB 10.3.2+. Without this configuration, Excellent
+Migrations keeps reporting the operation as potentially dangerous.
+
 ## Existing migrations
 
 To skip analyzing migrations that were created before adding this package, set timestamp from the

@@ -122,19 +122,30 @@ defmodule ExcellentMigrations.AstParser do
 
   defp detect_column_added_with_default(_), do: []
 
-  defp detect_column_volatile_default(
-         {:alter, _,
-          [{:table, _, _}, [do: {fun_name, location, [_, _, [default: {:fragment, _, _}]]}]]}
-       )
-       when fun_name in [:add, :add_if_not_exists] do
-    [{:column_volatile_default, Keyword.get(location, :line)}]
+  defp detect_column_volatile_default({:alter, _, [{:table, _, _}, _]} = ast) do
+    traverse_ast(ast, &detect_volatile_default_on_add_in_alter/1)
   end
 
-  defp detect_column_volatile_default({:modify, location, [_, _, [default: {:fragment, _, _}]]}) do
-    [{:column_volatile_default, Keyword.get(location, :line)}]
+  defp detect_column_volatile_default({:modify, location, [_, _, options]})
+       when is_list(options) do
+    detect_fragment_default(options, location)
   end
 
   defp detect_column_volatile_default(_), do: []
+
+  defp detect_volatile_default_on_add_in_alter({fun_name, location, [_, _, options]})
+       when fun_name in [:add, :add_if_not_exists] and is_list(options) do
+    detect_fragment_default(options, location)
+  end
+
+  defp detect_volatile_default_on_add_in_alter(_), do: []
+
+  defp detect_fragment_default(options, location) do
+    case Keyword.get(options, :default) do
+      {:fragment, _, _} -> [{:column_volatile_default, Keyword.get(location, :line)}]
+      _ -> []
+    end
+  end
 
   defp detect_column_type_changed({:modify, location, _}) do
     [{:column_type_changed, Keyword.get(location, :line)}]

@@ -8,6 +8,7 @@ defmodule ExcellentMigrations.DangersDetector do
     AstParser,
     AstParserFullDetections,
     ConfigCommentsParser,
+    DatabaseConfig,
     DangersFilter
   }
 
@@ -42,6 +43,8 @@ defmodule ExcellentMigrations.DangersDetector do
   ## Parameters
     * `ast` is a structure that represents AST of database migration.
       It can be obtained e.g. via `Code.string_to_quoted!/1`.
+    * `opts` is an optional keyword list. The `:database` option overrides the application
+      database configuration.
   ## Examples
           iex> source_code = \"""
           ...>   alter table("dumplings") do
@@ -66,14 +69,20 @@ defmodule ExcellentMigrations.DangersDetector do
           iex> ExcellentMigrations.DangersDetector.detect_dangers(ast, source_code)
           [column_removed: 2, column_removed: 3]
   """
-  @spec detect_dangers(ast, String.t()) :: [{danger_type, line}]
-  def detect_dangers(ast, source_code) do
+  @spec detect_dangers(ast, String.t(), keyword) :: [{danger_type, line}]
+  def detect_dangers(ast, source_code, opts \\ []) do
+    database =
+      Keyword.get_lazy(opts, :database, fn ->
+        Application.get_env(:excellent_migrations, :database)
+      end)
+
     parsed_dangers =
       [
         AstParser.parse(ast),
         AstParserFullDetections.parse(ast)
       ]
       |> Enum.concat()
+      |> DatabaseConfig.reject_safe_operations(database)
 
     parsed_safety_assured = ConfigCommentsParser.parse(source_code)
     skipped_types = Application.get_env(:excellent_migrations, :skip_checks, [])

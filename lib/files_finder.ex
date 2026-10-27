@@ -10,6 +10,8 @@ defmodule ExcellentMigrations.FilesFinder do
   end
 
   def relevant_file?(path, start_after) do
+    path = String.replace(path, "\\", "/")
+
     !String.starts_with?(path, ["deps/", "_build/"]) &&
       !String.contains?(path, ["/deps/", "/_build/"]) &&
       String.contains?(path, "migrations/") &&
